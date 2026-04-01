@@ -1,5 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import MyOrdersPage from "./MyOrdersPage";
+import HeroSection from "./HeroSection";
+import CheckoutPage from "./CheckoutPage";
+import FoodCustomizer from "./FoodCustomizer";
+import { API_BASE } from "./apiBase";
+
 
 const FOOD_IMAGES = {
   1: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=80",
@@ -15,7 +20,6 @@ const FOOD_IMAGES = {
 
 const HERO_DISH =
   "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&q=80";
-const API_BASE = "http://localhost:5000/api";
 
 const CATEGORIES = [
   { id: "all", label: "All", emoji: "🍽️" },
@@ -278,7 +282,7 @@ const INITIAL_REVIEWS = [
 
 // ─── CSS ──────────────────────────────────────────────────────────────────────
 const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;0,9..144,900;1,9..144,400&family=DM+Sans:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;0,9..144,900;1,9..144,400&family=DM+Sans:wght@300;400;500;600&family=Oswald:wght@500;700&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 [data-theme="dark"]{
   --bg:#0A0A0A;--bg2:#111;--surface:#141414;--surface2:#1E1E1E;--surface3:#252525;
@@ -292,55 +296,70 @@ const CSS = `
 }
 :root{
   --accent:#F4A435;--accent2:#FF6B35;--green:#2DC653;--red:#E63946;
-  --radius:20px;--font-display:'Fraunces',serif;--font-body:'DM Sans',sans-serif;
-  --transition:all .25s ease;
+  --radius:20px;--font-display:'Fraunces',serif;--font-body:'DM Sans',sans-serif;--font-hero:'Cormorant Garamond',serif;--font-outline:'Oswald',sans-serif;
+  --transition:all .25s ease;--content-max:1320px;--page-pad:clamp(16px,4vw,48px);--ink-panel:rgba(2,13,24,.9);--ink-panel-soft:rgba(6,18,32,.78);--ink-border:rgba(255,255,255,.16);
 }
 html{scroll-behavior:smooth;scroll-padding-top:88px;}
 body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background .3s,color .3s;}
 ::-webkit-scrollbar{width:5px;}
 ::-webkit-scrollbar-track{background:var(--bg);}
 ::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:10px;}
-.nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 48px;height:72px;background:var(--surface);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);transition:var(--transition);}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 var(--page-pad);height:72px;background:var(--surface);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);transition:var(--transition);}
+.nav-home{background:transparent;border-bottom:none;backdrop-filter:none;}
 .nav-logo{font-family:var(--font-display);font-size:1.7rem;font-weight:900;color:var(--text);letter-spacing:-.5px;cursor:pointer;display:flex;align-items:center;gap:8px;}
 .nav-logo-dot{color:var(--accent);}
 .nav-links{display:flex;gap:32px;list-style:none;}
 .nav-links a{color:var(--muted);text-decoration:none;font-size:.9rem;font-weight:500;transition:color .2s;cursor:pointer;}
 .nav-links a:hover,.nav-links a.active{color:var(--text);}
+.nav-home .nav-logo{font-family:var(--font-body);font-size:.86rem;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:#fff;}
+.nav-home .nav-links{background:rgba(2,13,24,.9);border:1px solid rgba(255,255,255,.16);padding:13px 20px;gap:24px;}
+.nav-home .nav-links a{color:rgba(255,255,255,.82);font-size:.68rem;font-weight:700;letter-spacing:1.9px;text-transform:uppercase;}
+.nav-home .nav-links a:hover,.nav-home .nav-links a.active{color:var(--accent);}
 .nav-actions{display:flex;align-items:center;gap:12px;}
+.nav-home .nav-actions{background:rgba(2,13,24,.9);border:1px solid rgba(255,255,255,.16);padding:6px;border-radius:2px;gap:8px;}
+.nav-user{display:flex;align-items:center;gap:12px;}
+.nav-user-name{font-size:.88rem;color:var(--muted);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.nav-home .nav-user-name{display:none;}
 .theme-toggle{width:44px;height:44px;border-radius:12px;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--transition);}
 .theme-toggle:hover{background:var(--accent);border-color:var(--accent);color:#0A0A0A;}
+.nav-home .theme-toggle{width:34px;height:34px;border-radius:2px;font-size:.92rem;background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2);color:#fff;}
 .btn-ghost{background:none;border:1px solid var(--border);color:var(--text);padding:10px 20px;border-radius:50px;font-size:.85rem;font-weight:500;cursor:pointer;transition:var(--transition);font-family:var(--font-body);}
 .btn-ghost:hover{border-color:var(--accent);color:var(--accent);}
+.nav-home .btn-ghost{padding:8px 12px;border-radius:2px;border-color:rgba(255,255,255,.25);color:#fff;font-size:.67rem;letter-spacing:1px;text-transform:uppercase;font-weight:700;}
 .btn-primary{background:var(--accent);border:none;color:#0A0A0A;padding:10px 22px;border-radius:50px;font-size:.85rem;font-weight:700;cursor:pointer;transition:var(--transition);font-family:var(--font-body);}
 .btn-primary:hover{background:#ffb84d;transform:scale(1.03);}
+.nav-home .btn-primary{padding:8px 12px;border-radius:2px;font-size:.67rem;letter-spacing:1px;text-transform:uppercase;}
 .cart-btn{position:relative;background:var(--surface2);border:1px solid var(--border);color:var(--text);width:44px;height:44px;border-radius:12px;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--transition);}
 .cart-btn:hover{background:var(--accent);border-color:var(--accent);color:#0A0A0A;}
+.nav-home .cart-btn{width:34px;height:34px;border-radius:2px;font-size:.9rem;background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2);color:#fff;}
 .cart-count{position:absolute;top:-6px;right:-6px;background:var(--accent2);color:#fff;font-size:.65rem;font-weight:700;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
-.home-hero{min-height:100vh;position:relative;display:flex;align-items:center;overflow:hidden;padding-top:72px;}
-.hero-bg{position:absolute;inset:0;z-index:0;background-image:url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1400&q=80');background-size:cover;background-position:center;filter:brightness(.28);transition:filter .3s;}
-[data-theme="light"] .hero-bg{filter:brightness(.42);}
-.hero-overlay{position:absolute;inset:0;z-index:1;background:linear-gradient(115deg,rgba(5,4,2,.82) 0%,rgba(5,4,2,.52) 50%,rgba(5,4,2,.18) 100%),linear-gradient(to bottom,rgba(5,4,2,.2) 0%,transparent 30%,transparent 70%,rgba(5,4,2,.55) 100%);}
-.home-hero-content{position:relative;z-index:2;max-width:1200px;margin:0 auto;padding:80px 48px;display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;}
-.home-tag{display:inline-flex;align-items:center;gap:8px;background:rgba(244,164,53,.15);border:1px solid rgba(244,164,53,.35);color:var(--accent);padding:8px 16px;border-radius:50px;font-size:.82rem;font-weight:600;margin-bottom:28px;animation:fadeSlideUp .6s ease both;}
-.home-title{font-family:var(--font-display);font-size:clamp(3.2rem,5vw,6rem);font-weight:900;line-height:1.0;letter-spacing:-2px;color:#fff;margin-bottom:24px;animation:fadeSlideUp .6s .1s ease both;text-shadow:0 4px 40px rgba(0,0,0,.5);}
-.home-title em{font-style:italic;color:var(--accent);}
-.home-desc{color:rgba(255,255,255,.76);font-size:1.1rem;line-height:1.7;max-width:440px;margin-bottom:40px;animation:fadeSlideUp .6s .2s ease both;text-shadow:0 2px 16px rgba(0,0,0,.4);}
-.home-cta{display:flex;align-items:center;gap:16px;animation:fadeSlideUp .6s .3s ease both;}
-.btn-large{background:var(--accent);color:#0A0A0A;border:none;padding:16px 36px;border-radius:50px;font-size:1rem;font-weight:700;cursor:pointer;font-family:var(--font-body);transition:all .25s;display:flex;align-items:center;gap:10px;}
-.btn-large:hover{background:#ffb84d;transform:translateY(-2px);box-shadow:0 12px 40px rgba(244,164,53,.45);}
-.btn-outline-large{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.35);padding:16px 36px;border-radius:50px;font-size:1rem;font-weight:500;cursor:pointer;font-family:var(--font-body);transition:all .25s;backdrop-filter:blur(10px);}
-.btn-outline-large:hover{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.55);}
-.home-stats{display:flex;gap:40px;margin-top:56px;animation:fadeSlideUp .6s .4s ease both;}
-.stat-num{font-family:var(--font-display);font-size:2.2rem;font-weight:900;color:#fff;line-height:1;text-shadow:0 2px 12px rgba(0,0,0,.3);}
-.stat-label{color:rgba(255,255,255,.5);font-size:.82rem;margin-top:4px;}
-.home-hero-img-wrap{position:relative;animation:fadeSlideUp .7s .2s ease both;}
-.home-hero-img{width:100%;max-width:500px;aspect-ratio:1;border-radius:50%;object-fit:cover;border:4px solid rgba(244,164,53,.4);box-shadow:0 40px 100px rgba(0,0,0,.6),0 0 0 12px rgba(244,164,53,.1);animation:float 6s ease-in-out infinite;}
-.floating-tag{position:absolute;background:rgba(20,20,20,.9);border:1px solid rgba(255,255,255,.12);padding:12px 16px;border-radius:16px;font-size:.8rem;font-weight:600;color:#fff;display:flex;align-items:center;gap:10px;backdrop-filter:blur(10px);}
-[data-theme="light"] .floating-tag{background:rgba(255,255,255,.95);border-color:var(--border2);color:var(--text);box-shadow:0 8px 32px var(--shadow);}
-.ftag-1{top:40px;right:-20px;animation:float 5s ease-in-out infinite;}
-.ftag-2{bottom:60px;left:-30px;animation:float 5s 1.5s ease-in-out infinite;}
-.ftag-icon{font-size:1.5rem;}
-.home-search-wrap{position:relative;z-index:10;padding:0 48px;margin-top:-36px;}
+.home-hero{min-height:calc(100vh + 20px);position:relative;display:flex;align-items:stretch;overflow:hidden;padding-top:72px;isolation:isolate;}
+.hero-bg{position:absolute;inset:0;z-index:0;background-image:url('https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1800&q=80');background-size:cover;background-position:center;filter:brightness(.46) contrast(1.1) saturate(1.08);transform:scale(1.04);}
+[data-theme="light"] .hero-bg{filter:brightness(.6) contrast(1.07) saturate(1.04);}
+.hero-overlay{position:absolute;inset:0;z-index:1;background:linear-gradient(92deg,rgba(3,10,19,.84) 0%,rgba(5,12,21,.62) 42%,rgba(5,12,21,.22) 72%),linear-gradient(to bottom,rgba(5,12,21,.2) 0%,transparent 36%,rgba(5,12,21,.55) 100%);}
+.hero-lines{position:absolute;inset:72px 0 0;z-index:2;pointer-events:none;opacity:.65;}
+.hero-lines::before,.hero-lines::after{content:'';position:absolute;background:rgba(255,255,255,.24);}
+.hero-lines::before{left:0;right:0;top:32%;height:1px;}
+.hero-lines::after{left:min(35%,460px);top:0;bottom:0;width:1px;}
+.hero-outline-word{position:absolute;left:max(14px,var(--page-pad));bottom:16px;z-index:2;font-family:var(--font-outline);font-size:clamp(4.2rem,16vw,12rem);line-height:.78;letter-spacing:2px;color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.46);opacity:.86;pointer-events:none;user-select:none;}
+.home-hero-content{position:relative;z-index:3;max-width:var(--content-max);width:100%;margin:0 auto;padding:66px var(--page-pad) 72px;display:grid;grid-template-columns:minmax(0,1fr);gap:26px;align-items:center;}
+.hero-copy{max-width:640px;padding-top:20px;padding-left:20px;border-left:1px solid rgba(255,255,255,.28);justify-self:start;align-self:center;text-align:left;animation:fadeSlideUp .65s ease both;}
+.hero-eyebrow{font-family:var(--font-hero);font-style:italic;color:rgba(255,255,255,.92);font-size:clamp(2rem,3.8vw,3.3rem);line-height:1.03;}
+.home-title{font-family:var(--font-hero);font-size:clamp(5.3rem,14vw,10rem);font-weight:700;line-height:.8;color:#fff;letter-spacing:1.2px;margin:4px 0 14px;text-shadow:0 10px 26px rgba(0,0,0,.45);}
+.home-title span{display:block;}
+.home-desc{color:rgba(255,255,255,.8);font-size:.95rem;line-height:1.7;max-width:460px;padding-right:6px;margin:0;}
+.home-cta{display:flex;align-items:center;justify-content:flex-start;gap:12px;margin-top:24px;}
+.btn-large{background:var(--accent);color:#0A0A0A;border:none;padding:12px 24px;border-radius:40px;font-size:.77rem;font-weight:800;cursor:pointer;font-family:var(--font-body);letter-spacing:1px;text-transform:uppercase;transition:all .24s;display:flex;align-items:center;gap:8px;}
+.btn-large:hover{background:#ffb84d;transform:translateY(-2px);box-shadow:0 10px 32px rgba(244,164,53,.42);}
+.btn-outline-large{background:rgba(3,13,22,.74);color:#fff;border:1px solid rgba(244,164,53,.6);padding:12px 24px;border-radius:40px;font-size:.77rem;font-weight:700;cursor:pointer;font-family:var(--font-body);transition:all .24s;letter-spacing:1px;text-transform:uppercase;}
+.btn-outline-large:hover{background:rgba(3,13,22,.88);border-color:var(--accent);box-shadow:0 10px 26px rgba(0,0,0,.3);}
+.hero-socials{display:flex;align-items:center;justify-content:flex-start;gap:10px;margin-top:26px;}
+.hero-social-btn{width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.45);background:rgba(0,0,0,.22);color:#fff;font-size:.75rem;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .2s,background .2s,border-color .2s;}
+.hero-social-btn:hover{transform:translateY(-2px);border-color:var(--accent);background:rgba(244,164,53,.2);}
+.hero-scroll-indicator{position:absolute;left:50%;bottom:0;transform:translate(-50%,50%);z-index:4;width:88px;height:56px;border:none;background:rgba(255,255,255,.94);color:var(--accent);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 18px 36px rgba(0,0,0,.25);transition:transform .2s,color .2s;}
+.hero-scroll-indicator:hover{transform:translate(-50%,45%);color:#d78514;}
+.hero-scroll-chevron{font-size:1.8rem;line-height:1;}
+.home-search-wrap{position:relative;z-index:10;padding:0 var(--page-pad);margin-top:-36px;}
 .home-search{max-width:900px;margin:0 auto;background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:20px 28px;display:flex;align-items:center;gap:20px;box-shadow:0 20px 60px var(--shadow);transition:border-color .2s,box-shadow .2s;}
 .home-search.focused{border-color:var(--accent);box-shadow:0 20px 60px var(--shadow),0 0 0 3px rgba(244,164,53,.12);}
 .search-divider{width:1px;height:32px;background:var(--border2);flex-shrink:0;}
@@ -353,6 +372,13 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-hei
 .search-suggestions-wrap{max-width:900px;margin:6px auto 0;position:relative;}
 .search-suggestions{background:var(--surface);border:1px solid var(--border2);border-radius:16px;overflow:hidden;box-shadow:0 16px 48px var(--shadow);animation:suggestIn .22s cubic-bezier(.34,1.4,.64,1) both;}
 @keyframes suggestIn{from{opacity:0;transform:translateY(-8px) scaleY(.96);}to{opacity:1;transform:translateY(0) scaleY(1);}}
+.home-quick-row{max-width:900px;margin:14px auto 0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;}
+.home-quick-pill{border:1px solid var(--border2);background:linear-gradient(160deg,var(--surface),var(--surface2));color:var(--text);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:transform .2s,border-color .2s,box-shadow .2s;box-shadow:0 12px 28px var(--shadow);}
+.home-quick-pill:hover{transform:translateY(-2px);border-color:rgba(244,164,53,.45);box-shadow:0 16px 38px var(--shadow);}
+.hq-emoji{font-size:1.1rem;line-height:1;}
+.hq-copy{display:flex;flex-direction:column;min-width:0;}
+.hq-label{font-size:.78rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hq-meta{font-size:.68rem;color:var(--muted);}
 .suggest-section-label{padding:10px 18px 6px;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);}
 .suggest-item{display:flex;align-items:center;gap:14px;padding:11px 18px;cursor:pointer;transition:background .15s;border-bottom:1px solid var(--border);}
 .suggest-item:last-child{border-bottom:none;}
@@ -367,8 +393,8 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-hei
 .suggest-empty{padding:20px 18px;text-align:center;color:var(--muted);font-size:.9rem;}
 .suggest-footer{padding:10px 18px;background:var(--surface2);border-top:1px solid var(--border);font-size:.82rem;color:var(--muted);display:flex;align-items:center;gap:8px;cursor:pointer;transition:color .15s;}
 .suggest-footer:hover{color:var(--accent);}
-.section{padding:90px 48px;}
-.section-inner{max-width:1200px;margin:0 auto;}
+.section{padding:90px var(--page-pad);}
+.section-inner{max-width:var(--content-max);width:100%;margin:0 auto;}
 .section-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:48px;}
 .section-tag{display:inline-flex;align-items:center;gap:8px;color:var(--accent);font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;margin-bottom:10px;}
 .section-title{font-family:var(--font-display);font-size:clamp(2rem,3vw,3rem);font-weight:900;letter-spacing:-1px;line-height:1.1;color:var(--text);}
@@ -387,8 +413,8 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-hei
 .restaurant-rating{color:var(--accent);font-weight:700;}
 .popular-scroll{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;}
 .menu-page{padding-top:72px;}
-.menu-header{background:var(--surface);border-bottom:1px solid var(--border);padding:40px 48px 0;position:sticky;top:72px;z-index:50;}
-.menu-header-inner{max-width:1200px;margin:0 auto;}
+.menu-header{background:var(--surface);border-bottom:1px solid var(--border);padding:40px var(--page-pad) 0;position:sticky;top:72px;z-index:50;}
+.menu-header-inner{max-width:var(--content-max);width:100%;margin:0 auto;}
 .menu-page-title{font-family:var(--font-display);font-size:2.5rem;font-weight:900;letter-spacing:-1px;margin-bottom:24px;color:var(--text);}
 .menu-controls{display:flex;align-items:center;justify-content:space-between;gap:24px;padding-bottom:20px;}
 .categories{display:flex;gap:10px;flex-wrap:wrap;}
@@ -408,7 +434,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-hei
 .menu-sug-name{font-weight:600;font-size:.87rem;color:var(--text);}
 .menu-sug-name mark{background:none;color:var(--accent);font-weight:700;}
 .menu-sug-price{font-size:.8rem;color:var(--muted);margin-top:1px;}
-.menu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:24px;padding:40px 48px;max-width:1200px;margin:0 auto;}
+.menu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:24px;padding:56px var(--page-pad) 40px;max-width:var(--content-max);width:100%;margin:0 auto;position:relative;z-index:1;}
 .food-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:all .3s cubic-bezier(.34,1.3,.64,1);}
 .food-card:hover{transform:translateY(-6px);border-color:var(--border2);box-shadow:0 20px 60px var(--shadow);}
 .food-card-img{height:200px;overflow:hidden;position:relative;}
@@ -443,8 +469,8 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-hei
 .author-avatar{width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);}
 .author-name{font-weight:700;font-size:.9rem;color:var(--text);}
 .author-role{color:var(--muted);font-size:.78rem;}
-.reviews-section{padding:80px 48px;background:var(--surface);border-top:1px solid var(--border);}
-.reviews-inner{max-width:1200px;margin:0 auto;}
+.reviews-section{padding:80px var(--page-pad);background:var(--surface);border-top:1px solid var(--border);}
+.reviews-inner{max-width:var(--content-max);width:100%;margin:0 auto;}
 .reviews-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:40px;flex-wrap:wrap;gap:20px;}
 .reviews-summary{display:flex;align-items:center;gap:24px;background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:20px 28px;}
 .reviews-big-rating{font-family:var(--font-display);font-size:3.5rem;font-weight:900;color:var(--text);line-height:1;}
@@ -549,8 +575,8 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-hei
 .auth-switch button:hover{text-decoration:underline;}
 .auth-success{background:rgba(45,198,83,.1);border:1px solid rgba(45,198,83,.3);color:var(--green);padding:12px 16px;border-radius:12px;font-size:.88rem;font-weight:500;}
 .auth-subtitle{color:var(--muted);font-size:.9rem;margin-top:8px;animation:fieldSlideIn .38s cubic-bezier(.34,1.4,.64,1) both;}
-.footer{background:var(--surface);border-top:1px solid var(--border);padding:60px 48px 32px;}
-.footer-inner{max-width:1200px;margin:0 auto;}
+.footer{background:var(--surface);border-top:1px solid var(--border);padding:60px var(--page-pad) 32px;}
+.footer-inner{max-width:var(--content-max);width:100%;margin:0 auto;}
 .footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:48px;margin-bottom:48px;}
 .footer-brand p{color:var(--muted);font-size:.9rem;line-height:1.7;margin-top:12px;max-width:280px;}
 .footer-col h4{font-weight:700;font-size:.88rem;margin-bottom:16px;color:var(--text);letter-spacing:.5px;}
@@ -559,10 +585,556 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-hei
 .footer-bottom{border-top:1px solid var(--border);padding-top:28px;display:flex;align-items:center;justify-content:space-between;color:var(--muted);font-size:.82rem;}
 .toast{position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface2);border:1px solid var(--border2);color:var(--text);padding:13px 22px;border-radius:50px;font-size:.88rem;font-weight:600;z-index:999;transition:transform .4s cubic-bezier(.34,1.56,.64,1);display:flex;align-items:center;gap:10px;backdrop-filter:blur(20px);pointer-events:none;box-shadow:0 8px 30px var(--shadow);}
 .toast.show{transform:translateX(-50%) translateY(0);}
+.mobile-dock{position:fixed;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:180;background:color-mix(in srgb,var(--surface) 94%,transparent);border:1px solid var(--border2);border-radius:22px;box-shadow:0 18px 48px var(--shadow);backdrop-filter:blur(18px);display:none;padding:8px;gap:6px;grid-template-columns:repeat(4,minmax(0,1fr));}
+.mobile-dock-btn{border:none;background:transparent;color:var(--muted);border-radius:14px;padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;transition:background .2s,color .2s,transform .2s;position:relative;}
+.mobile-dock-btn:hover{color:var(--text);background:var(--surface2);transform:translateY(-1px);}
+.mobile-dock-btn.active{background:linear-gradient(160deg,rgba(244,164,53,.2),rgba(255,107,53,.12));color:var(--accent);}
+.mobile-dock-icon{font-size:1.08rem;line-height:1;}
+.mobile-dock-label{font-size:.66rem;font-weight:700;letter-spacing:.2px;white-space:nowrap;}
+.mobile-dock-badge{position:absolute;top:4px;right:14px;min-width:16px;height:16px;padding:0 4px;border-radius:999px;background:var(--accent2);color:#fff;font-size:.58rem;font-weight:700;display:flex;align-items:center;justify-content:center;}
+.mobile-dock-spacer{display:none;}
 @keyframes fadeSlideUp{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);}}
 @keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-14px);}}
-@media(max-width:1024px){.restaurants-grid,.popular-scroll{grid-template-columns:repeat(2,1fr);}.testimonials-grid{grid-template-columns:repeat(2,1fr);}.steps-grid{grid-template-columns:repeat(2,1fr);}.footer-grid{grid-template-columns:1fr 1fr;}.reviews-grid{grid-template-columns:1fr;}.wr-row{grid-template-columns:1fr;}}
-@media(max-width:768px){.nav{padding:0 20px;}.nav-links{display:none;}.home-hero-content{grid-template-columns:1fr;padding:60px 24px;gap:40px;}.home-hero-img-wrap{display:none;}.home-search-wrap{padding:0 20px;}.home-search{flex-direction:column;gap:14px;}.search-divider{display:none;}.section{padding:60px 24px;}.menu-header{padding:24px 24px 0;}.menu-grid{padding:24px;grid-template-columns:1fr;}.restaurants-grid,.popular-scroll,.testimonials-grid,.steps-grid{grid-template-columns:1fr;}.promo{flex-direction:column;padding:40px 28px;}.promo-img{width:160px;height:160px;}.footer-grid{grid-template-columns:1fr;}.cart-sidebar{width:100%;}.home-stats{gap:24px;}.auth-page{padding:24px 20px 48px;}.auth-container{padding:32px 24px;}.reviews-section{padding:60px 24px;}.reviews-summary{flex-direction:column;gap:16px;}.menu-controls{flex-direction:column;align-items:flex-start;}}
+
+/* ===== REFERENCE STYLE SYSTEM ===== */
+[data-theme="light"]{
+  --ink-panel:rgba(7,19,33,.9);
+  --ink-panel-soft:rgba(10,24,42,.8);
+  --ink-border:rgba(255,255,255,.2);
+}
+
+.section,
+.menu-header,
+.footer,
+.reviews-section,
+.how-section{position:relative;}
+
+.restaurant-card,
+.food-card,
+.step-card,
+.testimonial-card,
+.review-card,
+.write-review,
+.promo,
+.auth-container,
+.home-search,
+.search-suggestions,
+.menu-suggestions,
+.search-bar,
+.cart-sidebar,
+.cart-item,
+.op-track-result{
+  background:linear-gradient(165deg,var(--ink-panel) 0%,var(--ink-panel-soft) 100%);
+  border:1px solid var(--ink-border);
+  border-radius:8px;
+}
+
+.restaurant-card:hover,
+.food-card:hover,
+.step-card:hover,
+.testimonial-card:hover,
+.review-card:hover,
+.cart-item:hover{
+  border-color:rgba(244,164,53,.42);
+  box-shadow:0 18px 44px rgba(0,0,0,.34);
+}
+
+.section-title,
+.menu-page-title,
+.promo-title,
+.cart-title,
+.auth-subtitle,
+.food-card-name,
+.restaurant-name,
+.step-title,
+.write-review-title{
+  font-family:var(--font-hero);
+  letter-spacing:.3px;
+}
+
+.section-tag,
+.step-num,
+.promo-label,
+.wr-field label,
+.auth-field label,
+.menu-sug-price,
+.review-item-tag,
+.suggest-section-label{
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+}
+
+.btn-large,
+.btn-outline-large,
+.btn-primary,
+.btn-ghost,
+.search-submit,
+.add-btn,
+.checkout-btn,
+.wr-submit,
+.auth-submit,
+.cat-btn,
+.op-filter-btn,
+.op-refresh-btn,
+.op-track-btn,
+.op-reorder-btn,
+.co-place-btn,
+.co-apply-btn,
+.co-back-btn,
+.bill-btn-primary,
+.bill-btn-ghost,
+.fc-add-btn{
+  border-radius:4px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+}
+
+.add-btn{border:1px solid rgba(0,0,0,.18);}
+
+.menu-header,
+.footer,
+.reviews-section,
+.auth-page{background:linear-gradient(180deg,rgba(3,10,19,.96) 0%,rgba(4,13,23,.94) 100%);}
+
+.categories{gap:8px;}
+.cat-btn{border-radius:4px;padding:8px 14px;font-size:.74rem;font-weight:700;}
+.cat-btn.active{box-shadow:0 10px 24px rgba(244,164,53,.26);}
+
+.food-card-badge,
+.restaurant-promo,
+.op-status-pill,
+.bill-status-pill,
+.bill-payment-status,
+.co-badge,
+.co-payment-chip{
+  border-radius:3px;
+  letter-spacing:.8px;
+  text-transform:uppercase;
+}
+
+.food-card-img,
+.restaurant-img-wrap,
+.promo,
+.auth-container,
+.cart-sidebar,
+.cart-item,
+.home-search,
+.search-suggestions,
+.menu-suggestions,
+.write-review,
+.review-card,
+.step-card,
+.testimonial-card,
+.restaurant-card,
+.food-card{overflow:hidden;}
+
+.promo::before{opacity:.8;}
+.promo-sub,
+.testimonial-text,
+.food-card-desc,
+.review-text,
+.footer-brand p,
+.author-role,
+.restaurant-meta,
+.stat-label,
+.home-desc{color:rgba(255,255,255,.66);}
+
+.footer-col a,
+.nav-links a,
+.menu-sug-price,
+.suggest-item-meta,
+.co-page-sub,
+.co-row,
+.bill-success-sub{color:rgba(255,255,255,.62);}
+
+.search-field input::placeholder,
+.search-bar input::placeholder,
+.wr-field input::placeholder,
+.wr-field textarea::placeholder,
+.auth-field input::placeholder,
+.co-field input::placeholder,
+.co-field textarea::placeholder{color:rgba(255,255,255,.5);}
+
+.footer-bottom{border-top-color:rgba(255,255,255,.12);color:rgba(255,255,255,.6);}
+
+.reviews-summary,
+.op-summary,
+.bill-totals,
+.fc-qty-row,
+.fc-extra-btn,
+.fc-portion-btn,
+.fc-spice-btn,
+.fc-notes,
+.co-pay-method,
+.co-suggest-list,
+.co-summary,
+.co-section{background:rgba(2,13,24,.72);border-color:var(--ink-border);border-radius:8px;}
+
+.co-pay-method.selected,
+.fc-portion-btn.selected,
+.fc-spice-btn.selected,
+.fc-extra-btn.selected{box-shadow:0 12px 26px rgba(244,164,53,.22);}
+
+/* ===== ENHANCED MOBILE RESPONSIVENESS ===== */
+@media(max-width:1024px){
+  .restaurants-grid{grid-template-columns:repeat(2,1fr);}
+  .popular-scroll{grid-template-columns:repeat(2,1fr);}
+  .testimonials-grid{grid-template-columns:repeat(2,1fr);}
+  .steps-grid{grid-template-columns:repeat(2,1fr);}
+  .footer-grid{grid-template-columns:1fr 1fr;}
+  .reviews-grid{grid-template-columns:1fr;}
+  .wr-row{grid-template-columns:1fr;}
+  .home-hero-content{padding:56px 32px 64px;}
+  .hero-outline-word{font-size:clamp(4.2rem,15vw,10rem);}
+}
+
+@media(max-width:768px){
+  /* Navigation */
+  .nav{padding:0 20px;}
+  .nav-links{display:none;}
+  .nav-actions{gap:8px;}
+  .nav-home .nav-actions{background:transparent;border:none;padding:0;}
+  .nav-user-name{display:none;}
+  .nav-actions .btn-primary{display:none;}
+  .btn-ghost{padding:8px 14px;font-size:.8rem;}
+  .btn-primary{padding:8px 16px;font-size:.8rem;}
+  .theme-toggle{width:38px;height:38px;}
+  .cart-btn{width:38px;height:38px;}
+  
+  /* Hero Section */
+  .home-hero{min-height:88vh;padding-top:84px;}
+  .hero-lines::after{display:none;}
+  .home-hero-content{grid-template-columns:1fr;padding:42px 20px 38px;gap:20px;}
+  .hero-copy{max-width:100%;padding-top:12px;padding-left:14px;border-left:1px solid rgba(255,255,255,.24);text-align:left;}
+  .hero-eyebrow{font-size:clamp(1.9rem,8.2vw,2.8rem);}
+  .home-title{font-size:clamp(4.2rem,19vw,6.7rem);margin-bottom:10px;}
+  .home-desc{font-size:.9rem;max-width:100%;}
+  .hero-outline-word{left:18px;bottom:26px;font-size:clamp(3.4rem,19vw,7.2rem);}
+  .home-cta{flex-direction:column;align-items:flex-start;gap:12px;}
+  .btn-large,.btn-outline-large{width:100%;justify-content:center;padding:14px 24px;}
+  .hero-socials{margin-top:20px;justify-content:flex-start;}
+  .hero-scroll-indicator{width:74px;height:50px;}
+  
+  /* Search Section */
+  .home-search-wrap{padding:0 20px;margin-top:-20px;}
+  .home-search{flex-direction:column;gap:14px;padding:16px;}
+  .search-divider{display:none;}
+  .search-field{width:100%;}
+  .search-field input{font-size:.9rem;}
+  .search-submit{width:100%;padding:12px;}
+  .search-suggestions{max-height:70vh;overflow-y:auto;}
+  .home-quick-row{grid-template-columns:repeat(2,minmax(0,1fr));}
+  
+  /* Sections */
+  .section{padding:50px 20px;}
+  .section-header{flex-direction:column;align-items:flex-start;gap:12px;margin-bottom:28px;}
+  .section-tag{font-size:.75rem;}
+  .section-title{font-size:1.8rem;}
+  .link-all{font-size:.85rem;}
+  
+  /* Restaurants Grid */
+  .restaurants-grid{grid-template-columns:1fr;gap:16px;}
+  .restaurant-name{font-size:1rem;}
+  .restaurant-meta{font-size:.75rem;flex-wrap:wrap;}
+  
+  /* Popular Scroll */
+  .popular-scroll{grid-template-columns:1fr;gap:16px;}
+  
+  /* Menu Page */
+  .menu-header{padding:24px 20px 0;}
+  .menu-page-title{font-size:2rem;margin-bottom:16px;}
+  .menu-controls{flex-direction:column;align-items:flex-start;gap:16px;}
+  .categories{width:100%;overflow-x:auto;padding-bottom:8px;flex-wrap:nowrap;justify-content:flex-start;}
+  .categories::-webkit-scrollbar{display:none;}
+  .cat-btn{white-space:nowrap;padding:8px 14px;font-size:.8rem;}
+  .menu-search-wrap{width:100%;}
+  .search-bar{width:100%;min-width:0;}
+  .menu-grid{padding:34px 20px 24px;grid-template-columns:1fr;gap:16px;}
+  
+  /* Food Cards */
+  .food-card-img{height:180px;}
+  .food-card-body{padding:16px;}
+  .food-card-name{font-size:1.1rem;}
+  .food-card-desc{font-size:.8rem;margin-bottom:10px;}
+  .food-card-meta{gap:10px;flex-wrap:wrap;}
+  .food-price{font-size:1.3rem;}
+  
+  /* Steps Grid */
+  .steps-grid{grid-template-columns:1fr;gap:16px;}
+  .step-card{padding:24px;}
+  
+  /* Testimonials Grid */
+  .testimonials-grid{grid-template-columns:1fr;gap:16px;}
+  .testimonial-card{padding:20px;}
+  
+  /* Promo Banner */
+  .promo{flex-direction:column;padding:32px 20px;text-align:center;}
+  .promo-title{font-size:2rem;}
+  .promo-code{flex-direction:column;gap:6px;padding:10px 16px;}
+  .promo-code span{font-size:1rem;}
+  .promo-img{width:140px;height:140px;margin-top:24px;}
+  
+  /* Reviews Section */
+  .reviews-section{padding:50px 20px;}
+  .reviews-header{flex-direction:column;align-items:flex-start;}
+  .reviews-summary{width:100%;padding:16px;}
+  .reviews-big-rating{font-size:2.5rem;}
+  .reviews-bars{width:100%;}
+  .reviews-bar-track{width:100%;}
+  .reviews-grid{gap:16px;}
+  .review-card{padding:18px;}
+  .review-item-tag{font-size:.7rem;}
+  
+  /* Write Review */
+  .write-review{padding:24px;}
+  .write-review-title{font-size:1.2rem;margin-bottom:20px;}
+  .wr-row{gap:12px;}
+  .wr-field input,.wr-field select,.wr-field textarea{padding:10px 14px;}
+  .star-pick-btn{font-size:1.3rem;}
+  
+  /* Cart Sidebar */
+  .cart-sidebar{width:100%;padding:24px 20px;}
+  .cart-title{font-size:1.4rem;}
+  .cart-item{padding:10px;gap:10px;}
+  .cart-item-img{width:48px;height:48px;}
+  .cart-item-name{font-size:.85rem;}
+  .cart-item-price{font-size:.8rem;}
+  .qty-btn{width:26px;height:26px;}
+  .qty-num{font-size:.85rem;min-width:20px;}
+  
+  /* Auth Page */
+  .auth-page{padding:24px 16px 48px;}
+  .auth-container{padding:32px 24px;}
+  .auth-tabs{margin-bottom:28px;}
+  .auth-tab{padding:10px 16px;font-size:.9rem;}
+  .auth-field input{padding:12px 16px;}
+  .auth-submit{padding:14px;}
+  
+  /* Footer */
+  .footer{padding:40px 20px 24px;}
+  .footer-grid{grid-template-columns:1fr;gap:28px;}
+  .footer-brand p{max-width:100%;}
+  .footer-bottom{flex-direction:column;gap:8px;text-align:center;}
+  
+  /* Toast */
+  .toast{bottom:24px;width:90%;text-align:center;}
+
+  /* Mobile Dock */
+  .mobile-dock{display:grid;}
+  .mobile-dock-spacer{display:block;height:86px;}
+}
+
+@media(max-width:480px){
+  /* Extra small devices */
+  .hero-copy{padding-left:14px;}
+  .hero-eyebrow{font-size:1.8rem;}
+  .home-title{font-size:clamp(3.2rem,22vw,5.3rem);}
+  .hero-outline-word{font-size:clamp(2.8rem,21vw,5.6rem);left:12px;bottom:34px;}
+  .hero-social-btn{width:32px;height:32px;font-size:.7rem;}
+  .menu-page-title{font-size:1.8rem;}
+  .section-title{font-size:1.5rem;}
+  .promo-title{font-size:1.8rem;}
+  .promo-sub{font-size:.85rem;}
+  .btn-large,.btn-outline-large{padding:12px 20px;font-size:.95rem;}
+  .home-quick-row{grid-template-columns:1fr;}
+  .home-quick-pill{padding:10px 12px;}
+  .cart-header{margin-bottom:20px;}
+  .cart-total{font-size:1.2rem;}
+  .checkout-btn{padding:14px;}
+  .auth-container{padding:24px 20px;}
+}
+
+/* Promo-wide visual refresh */
+:root {
+  --promo-gold: #f6b515;
+  --promo-gold-strong: #ffcd2e;
+  --promo-ink: #04070c;
+  --promo-panel: rgba(5, 13, 24, 0.82);
+  --promo-panel-soft: rgba(9, 22, 38, 0.72);
+}
+
+[data-theme="dark"] {
+  --accent: var(--promo-gold);
+  --accent2: #ff8b1f;
+  --bg: #03070d;
+  --bg2: #07101a;
+  --surface: #08131f;
+  --surface2: #0d1d2f;
+  --surface3: #142a43;
+  --text: #f5f2eb;
+  --muted: #a79f92;
+  --border: rgba(255, 255, 255, 0.12);
+  --border2: rgba(255, 255, 255, 0.22);
+  --shadow: rgba(0, 0, 0, 0.52);
+}
+
+.nav-home .nav-links,
+.nav-home .nav-actions {
+  background: var(--promo-panel);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.nav-home .nav-links a,
+.nav-home .btn-ghost,
+.nav-home .btn-primary {
+  letter-spacing: 1.5px;
+}
+
+.home-hero {
+  min-height: calc(100vh + 42px);
+}
+
+.hero-copy {
+  max-width: 560px;
+  border-left-color: rgba(255, 255, 255, 0.34);
+}
+
+.hero-eyebrow {
+  font-family: var(--font-body);
+  font-style: normal;
+  font-size: clamp(0.72rem, 1.2vw, 0.86rem);
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.home-title {
+  font-family: var(--font-outline);
+  font-size: clamp(4.4rem, 15vw, 11rem);
+  line-height: 0.78;
+  letter-spacing: 2.2px;
+}
+
+.home-desc {
+  font-size: 0.79rem;
+  letter-spacing: 0.65px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.btn-large,
+.btn-outline-large,
+.search-submit,
+.add-btn,
+.checkout-btn {
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+}
+
+.section,
+.menu-page,
+.how-section {
+  position: relative;
+}
+
+.section::before,
+.menu-page::before,
+.how-section::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.035) 50%, transparent 100%);
+  opacity: 0.35;
+}
+
+.food-card,
+.restaurant-card,
+.testimonial-card,
+.step-card,
+.review-card,
+.auth-container,
+.cart-sidebar,
+.write-review {
+  background: linear-gradient(160deg, var(--promo-panel) 0%, var(--promo-panel-soft) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  backdrop-filter: blur(8px);
+}
+
+.food-card:hover,
+.restaurant-card:hover,
+.testimonial-card:hover,
+.step-card:hover {
+  border-color: rgba(246, 181, 21, 0.42);
+  box-shadow: 0 18px 38px rgba(0, 0, 0, 0.34);
+}
+
+.food-card-name,
+.restaurant-name,
+.promo-title,
+.section-title,
+.menu-page-title,
+.cart-title {
+  letter-spacing: 0.6px;
+}
+
+.mobile-dock {
+  background: rgba(3, 10, 18, 0.95);
+  border-top-color: rgba(255, 255, 255, 0.15);
+}
+
+.mobile-dock-btn.active .mobile-dock-icon,
+.mobile-dock-btn.active .mobile-dock-label {
+  color: var(--accent);
+}
+
+@media (max-width: 900px) {
+  .home-search {
+    padding: 16px;
+    flex-wrap: wrap;
+  }
+
+  .search-divider {
+    display: none;
+  }
+
+  .search-submit {
+    width: 100%;
+  }
+
+  .home-quick-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .menu-grid,
+  .restaurants-grid,
+  .testimonials-grid,
+  .steps-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .nav-home .nav-links {
+    gap: 14px;
+    padding: 10px 12px;
+  }
+
+  .hero-copy {
+    padding-left: 14px;
+  }
+
+  .home-title {
+    font-size: clamp(3.5rem, 18vw, 6rem);
+  }
+
+  .home-desc {
+    font-size: 0.72rem;
+  }
+
+  .home-cta {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .btn-large,
+  .btn-outline-large {
+    width: 100%;
+    justify-content: center;
+  }
+}
 `;
 
 // ─── HighlightMatch ───────────────────────────────────────────────────────────
@@ -607,7 +1179,7 @@ function FoodCard({ item, addToCart, addedItems }) {
           <span>🔥 {item.cal} kcal</span>
         </div>
         <div className="food-card-footer">
-          <div className="food-price">${Number(item.price).toFixed(2)}</div>
+          <div className="food-price">₹{Math.round(Number(item.price))}</div>
           <button
             className={`add-btn${addedItems[item.id] ? " added" : ""}`}
             onClick={() => addToCart(item)}
@@ -783,8 +1355,8 @@ function ReviewsSection({ reviews, onAddReview, menuItems }) {
     count: reviews.filter((r) => r.rating === s).length,
     pct: reviews.length
       ? Math.round(
-          (reviews.filter((r) => r.rating === s).length / reviews.length) * 100,
-        )
+        (reviews.filter((r) => r.rating === s).length / reviews.length) * 100,
+      )
       : 0,
   }));
   const avg = reviews.length
@@ -1011,6 +1583,7 @@ function HomePage({
   setHomeSearchFocused,
   homeSuggs,
   showHomeSugg,
+  setActiveCategory,
   setSearchQuery,
   setActivePage,
   showToast,
@@ -1021,89 +1594,61 @@ function HomePage({
       ?.scrollIntoView({ behavior: "smooth", block: "start" });
 
   return (
-    <div style={{ paddingTop: "72px" }}>
+    <div>
       {/* Hero */}
       <section className="home-hero">
         <div className="hero-bg" />
         <div className="hero-overlay" />
+        <div className="hero-lines" />
+        <div className="hero-outline-word">BURGER</div>
         <div className="home-hero-content">
-          <div>
-            <div className="home-tag">🛵 30 Min Delivery Guaranteed</div>
+          <div className="hero-copy">
+            <p className="hero-eyebrow">The best food to</p>
             <h1 className="home-title">
-              Crave It.
-              <br />
-              <em>Order It.</em>
-              <br />
-              Love It.
+              <span>FEEL</span>
             </h1>
             <p className="home-desc">
-              Restaurant-quality meals delivered to your door in minutes. Fresh
-              ingredients, bold flavors, zero compromise.
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curated
+              burgers and comfort classics delivered hot, fast, and full of
+              flavor.
             </p>
             <div className="home-cta">
-              <button
-                className="btn-large"
-                onClick={() => setActivePage("menu")}
-              >
-                Explore Menu <span>→</span>
-              </button>
               <button
                 className="btn-outline-large"
                 onClick={() => smoothScroll("how-it-works")}
               >
-                How it Works
+                More Info
+              </button>
+              <button
+                className="btn-large"
+                onClick={() => setActivePage("menu")}
+              >
+                Order Now <span>→</span>
               </button>
             </div>
-            <div className="home-stats">
-              <div>
-                <div className="stat-num">50+</div>
-                <div className="stat-label">Restaurants</div>
-              </div>
-              <div>
-                <div className="stat-num">4.9★</div>
-                <div className="stat-label">Avg Rating</div>
-              </div>
-              <div>
-                <div className="stat-num">28min</div>
-                <div className="stat-label">Avg Delivery</div>
-              </div>
-              <div>
-                <div className="stat-num">10k+</div>
-                <div className="stat-label">Happy Customers</div>
-              </div>
+            <div className="hero-socials" aria-label="Social links">
+              <button type="button" className="hero-social-btn" aria-label="Facebook">
+                f
+              </button>
+              <button type="button" className="hero-social-btn" aria-label="Instagram">
+                ig
+              </button>
+              <button type="button" className="hero-social-btn" aria-label="YouTube">
+                yt
+              </button>
             </div>
           </div>
-          <div className="home-hero-img-wrap">
-            <img
-              className="home-hero-img"
-              src={HERO_DISH}
-              alt="Delicious food"
-              loading="eager"
-            />
-            <div className="floating-tag ftag-1">
-              <span className="ftag-icon">⭐</span>
-              <div>
-                <div style={{ fontWeight: 700, fontSize: ".9rem" }}>
-                  4.9 Rating
-                </div>
-                <div style={{ color: "var(--muted)", fontSize: ".75rem" }}>
-                  12k+ reviews
-                </div>
-              </div>
-            </div>
-            <div className="floating-tag ftag-2">
-              <span className="ftag-icon">🚀</span>
-              <div>
-                <div style={{ fontWeight: 700, fontSize: ".9rem" }}>
-                  Fast Delivery
-                </div>
-                <div style={{ color: "var(--muted)", fontSize: ".75rem" }}>
-                  Under 30 min
-                </div>
-              </div>
-            </div>
-          </div>
+
         </div>
+
+        <button
+          type="button"
+          className="hero-scroll-indicator"
+          onClick={() => smoothScroll("popular-restaurants")}
+          aria-label="Scroll to restaurant list"
+        >
+          <span className="hero-scroll-chevron">⌄</span>
+        </button>
       </section>
 
       {/* Hero Search */}
@@ -1149,7 +1694,7 @@ function HomePage({
           <div className="search-suggestions-wrap">
             <div className="search-suggestions">
               {homeSuggs.dishes.length === 0 &&
-              homeSuggs.restaurants.length === 0 ? (
+                homeSuggs.restaurants.length === 0 ? (
                 <div className="suggest-empty">
                   No results for "<strong>{homeSearchVal}</strong>"
                 </div>
@@ -1246,10 +1791,31 @@ function HomePage({
             </div>
           </div>
         )}
+
+        <div className="home-quick-row">
+          {CATEGORIES.filter((cat) => cat.id !== "all").map((cat) => (
+            <button
+              key={cat.id}
+              type="button"
+              className="home-quick-pill"
+              onClick={() => {
+                setActiveCategory(cat.id);
+                setSearchQuery("");
+                setActivePage("menu");
+              }}
+            >
+              <span className="hq-emoji">{cat.emoji}</span>
+              <span className="hq-copy">
+                <span className="hq-label">{cat.label} cravings</span>
+                <span className="hq-meta">Tap to explore</span>
+              </span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Popular Restaurants */}
-      <section className="section">
+      <section id="popular-restaurants" className="section">
         <div className="section-inner">
           <div className="section-header">
             <div>
@@ -1702,6 +2268,7 @@ function AuthPage({
 }
 
 // ─── CartSidebar — OUTSIDE FoodDelivery ──────────────────────────────────────
+// ─── CartSidebar — FIXED ──────────────────────────────────────────────────────
 function CartSidebar({
   cart,
   cartOpen,
@@ -1718,6 +2285,8 @@ function CartSidebar({
   setCart,
   user,
 }) {
+  const [placing, setPlacing] = useState(false); // ← ADD THIS
+
   return (
     <>
       <div
@@ -1727,9 +2296,7 @@ function CartSidebar({
       <div className={`cart-sidebar${cartOpen ? " open" : ""}`}>
         <div className="cart-header">
           <div className="cart-title">Your Order 🛒</div>
-          <button className="close-btn" onClick={() => setCartOpen(false)}>
-            ✕
-          </button>
+          <button className="close-btn" onClick={() => setCartOpen(false)}>✕</button>
         </div>
         {cart.length === 0 ? (
           <div className="cart-empty">
@@ -1738,13 +2305,7 @@ function CartSidebar({
               src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=200&q=60"
               alt=""
             />
-            <p
-              style={{
-                fontWeight: 700,
-                color: "var(--text)",
-                fontSize: "1.05rem",
-              }}
-            >
+            <p style={{ fontWeight: 700, color: "var(--text)", fontSize: "1.05rem" }}>
               Your cart is empty
             </p>
             <p style={{ color: "var(--muted)", fontSize: ".85rem" }}>
@@ -1752,10 +2313,7 @@ function CartSidebar({
             </p>
             <button
               className="btn-primary"
-              onClick={() => {
-                setCartOpen(false);
-                setActivePage("menu");
-              }}
+              onClick={() => { setCartOpen(false); setActivePage("menu"); }}
             >
               Browse Menu
             </button>
@@ -1774,16 +2332,13 @@ function CartSidebar({
             </div>
             <div className="cart-footer">
               <div className="cart-row">
-                <span>Subtotal</span>
-                <span>${subtotal.toFixed(2)}</span>
+                <span>Subtotal</span><span>₹{Math.round(subtotal)}</span>
               </div>
               <div className="cart-row">
-                <span>Delivery</span>
-                <span>${deliveryFee.toFixed(2)}</span>
+                <span>Delivery</span><span>₹{Math.round(deliveryFee)}</span>
               </div>
               <div className="cart-row">
-                <span>Tax (8%)</span>
-                <span>${tax.toFixed(2)}</span>
+                <span>Tax (8%)</span><span>₹{Math.round(tax)}</span>
               </div>
               <div className="cart-total">
                 <span>Total</span>
@@ -1793,9 +2348,25 @@ function CartSidebar({
               </div>
               <button
                 className="checkout-btn"
+                disabled={cart.length === 0}
+                onClick={() => {
+                  if (cart.length === 0) return;
+                  setCartOpen(false);
+                  setActivePage("checkout");
+                }}
+              >
+                Proceed to Checkout →
+              </button>
+              {/* <button
+                className="checkout-btn"
+                disabled={placing}
                 onClick={async () => {
+                  setCartOpen(false);
+                  setActivePage("checkout");
+                  if (placing) return;
+                  setPlacing(true);
                   try {
-                    await fetch(`${API_BASE}/orders`, {
+                    const res = await fetch(`${API_BASE}/orders`, {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({
@@ -1805,19 +2376,31 @@ function CartSidebar({
                           price: c.price,
                           qty: c.qty,
                         })),
-                        total: total,
+                        total,
                         deliveryAddress: "Customer Address",
-                        userId: user?.id || null, // ← this must not be null
+                        userId: user?.id || null,
                       }),
                     });
-                  } catch {}
-                  showToast("🎉 Order placed successfully!");
-                  setCart([]);
-                  setCartOpen(false);
+                    const data = await res.json();
+                    if (!data.success) {
+                      showToast("Order failed: " + data.message);
+                      return;
+                    }
+                    showToast("🎉 Order placed successfully!");
+                    setCart([]);
+                    setCartOpen(false);
+                  } catch (err) {
+                    // Backend offline — simulate success for demo
+                    showToast("🎉 Order placed successfully!");
+                    setCart([]);
+                    setCartOpen(false);
+                  } finally {
+                    setPlacing(false);
+                  }
                 }}
               >
-                Checkout → ${total.toFixed(2)}
-              </button>
+                {placing ? "Placing…" : `Checkout → $${total.toFixed(2)}`}
+              </button> */}
             </div>
           </>
         )}
@@ -1843,7 +2426,7 @@ function Nav({
   switchAuthMode,
 }) {
   return (
-    <nav className="nav">
+    <nav className={`nav${activePage === "home" ? " nav-home" : ""}`}>
       <div className="nav-logo" onClick={() => handleNavClick("home")}>
         Fork<span className="nav-logo-dot">.</span>Fleet
       </div>
@@ -1870,19 +2453,8 @@ function Nav({
           {theme === "dark" ? "☀️" : "🌙"}
         </button>
         {user ? (
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <span
-              style={{
-                fontSize: ".88rem",
-                color: "var(--muted)",
-                maxWidth: 120,
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {user.name}
-            </span>
+          <div className="nav-user">
+            <span className="nav-user-name">{user.name}</span>
             <button className="btn-ghost" onClick={logout}>
               Sign Out
             </button>
@@ -1912,6 +2484,78 @@ function Nav({
   );
 }
 
+// ─── MobileDock — OUTSIDE FoodDelivery ──────────────────────────────────────
+function MobileDock({
+  activePage,
+  setActivePage,
+  setCartOpen,
+  cartCount,
+  user,
+  setAuthError,
+  setAuthSuccess,
+  setAuthForm,
+  switchAuthMode,
+}) {
+  const tabs = [
+    {
+      id: "home",
+      icon: "🏠",
+      label: "Home",
+      onClick: () => setActivePage("home"),
+      isActive: activePage === "home",
+    },
+    {
+      id: "menu",
+      icon: "🍽️",
+      label: "Menu",
+      onClick: () => setActivePage("menu"),
+      isActive: activePage === "menu",
+    },
+    {
+      id: "orders",
+      icon: "🧾",
+      label: "Orders",
+      onClick: () => {
+        if (!user) {
+          setActivePage("auth");
+          setAuthError("");
+          setAuthSuccess("");
+          setAuthForm({ name: "", email: "", password: "", phone: "" });
+          switchAuthMode("signin");
+          return;
+        }
+        setActivePage("orders");
+      },
+      isActive: activePage === "orders" || activePage === "auth",
+    },
+    {
+      id: "cart",
+      icon: "🛒",
+      label: "Cart",
+      onClick: () => setCartOpen(true),
+      isActive: false,
+      badge: cartCount > 0 ? cartCount : null,
+    },
+  ];
+
+  return (
+    <div className="mobile-dock">
+      {tabs.map((tab) => (
+        <button
+          key={tab.id}
+          type="button"
+          className={`mobile-dock-btn${tab.isActive ? " active" : ""}`}
+          onClick={tab.onClick}
+        >
+          <span className="mobile-dock-icon">{tab.icon}</span>
+          <span className="mobile-dock-label">{tab.label}</span>
+          {tab.badge ? <span className="mobile-dock-badge">{tab.badge}</span> : null}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // ─── MAIN FoodDelivery Component ─────────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -1937,7 +2581,14 @@ export default function FoodDelivery() {
   const menuSearchRef = useRef(null);
 
   // Auth
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem("ff_user");
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
   const [authMode, setAuthMode] = useState("signin");
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState("");
@@ -1950,6 +2601,28 @@ export default function FoodDelivery() {
   });
   const [animKey, setAnimKey] = useState(0);
   const [totalPopKey, setTotalPopKey] = useState(0);
+
+  // Auto refresh menu & reviews every 10s
+  useEffect(() => {
+    const refreshData = () => {
+      fetch(`${API_BASE}/menu`)
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.success && data.items.length > 0) setLiveMenu(data.items);
+        })
+        .catch(() => { });
+
+      fetch(`${API_BASE}/reviews`)
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.success && data.reviews.length > 0) setReviews(data.reviews);
+        })
+        .catch(() => { });
+    };
+
+    const interval = setInterval(refreshData, 10000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Inject CSS
   useEffect(() => {
@@ -1977,7 +2650,7 @@ export default function FoodDelivery() {
       .then((data) => {
         if (data.success && data.items.length > 0) setLiveMenu(data.items);
       })
-      .catch(() => {}); // silently fallback to STATIC_MENU
+      .catch(() => { }); // silently fallback to STATIC_MENU
   }, []);
 
   // Fetch reviews from backend
@@ -1987,7 +2660,7 @@ export default function FoodDelivery() {
       .then((data) => {
         if (data.success && data.reviews.length > 0) setReviews(data.reviews);
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   // Close suggestions on outside click
@@ -2117,6 +2790,9 @@ export default function FoodDelivery() {
         const data = await res.json();
         if (!data.success) throw new Error(data.message || "Login failed");
         setUser(data.user);
+        setUser(data.user);
+        localStorage.setItem("ff_user", JSON.stringify(data.user));
+        localStorage.setItem("ff_token", data.token);
         setAuthSuccess("Logged in!");
         showToast("Welcome back, " + data.user.name + "!");
         setTimeout(() => setActivePage("home"), 800);
@@ -2130,6 +2806,8 @@ export default function FoodDelivery() {
 
   const logout = () => {
     setUser(null);
+    localStorage.removeItem("ff_user");
+    localStorage.removeItem("ff_token");
     setActivePage("home");
     showToast("Logged out");
   };
@@ -2197,9 +2875,28 @@ export default function FoodDelivery() {
     switchAuthMode,
   };
 
+  const showMobileDock = !["checkout", "customize", "herosection"].includes(
+    activePage,
+  );
+
   return (
     <div>
+
+
+
       <Nav {...navProps} />
+
+      {activePage === "customize" && <FoodCustomizer />}
+      {activePage === "checkout" && (
+        <CheckoutPage
+          cart={cart}
+          user={user}
+          setActivePage={setActivePage}
+          setCart={setCart}
+          showToast={showToast}
+        />
+      )}
+      {activePage === "herosection" && <HeroSection />}
 
       {activePage === "home" && (
         <HomePage
@@ -2215,6 +2912,7 @@ export default function FoodDelivery() {
           setHomeSearchFocused={setHomeSearchFocused}
           homeSuggs={homeSuggs}
           showHomeSugg={showHomeSugg}
+          setActiveCategory={setActiveCategory}
           setSearchQuery={setSearchQuery}
           setActivePage={setActivePage}
           showToast={showToast}
@@ -2282,6 +2980,22 @@ export default function FoodDelivery() {
         showToast={showToast}
         user={user}
       />
+
+      {showMobileDock && (
+        <MobileDock
+          activePage={activePage}
+          setActivePage={setActivePage}
+          setCartOpen={setCartOpen}
+          cartCount={cartCount}
+          user={user}
+          setAuthError={setAuthError}
+          setAuthSuccess={setAuthSuccess}
+          setAuthForm={setAuthForm}
+          switchAuthMode={switchAuthMode}
+        />
+      )}
+
+      {showMobileDock && <div className="mobile-dock-spacer" />}
 
       <div className={`toast${toast.show ? " show" : ""}`}>{toast.msg}</div>
     </div>

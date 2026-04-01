@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-
-const API_BASE = "http://localhost:5000/api";
+import { API_BASE } from "./apiBase";
 
 const DELIVERY_ESTIMATE = {
   pending: 45,
@@ -93,7 +92,7 @@ const STATUS_COLOR = {
 
 // ─────────────────────────────────────────────────────────────────────────────
 const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;0,9..144,900;1,9..144,400&family=DM+Sans:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;0,9..144,900;1,9..144,400&family=DM+Sans:wght@300;400;500;600;700&display=swap');
 
 .op-page { padding-top: 72px; min-height: 100vh; background: var(--bg); font-family: var(--font-body); }
 
@@ -357,6 +356,143 @@ const CSS = `
   animation: opFadeUp .4s cubic-bezier(.34,1.3,.64,1) both;
 }
 
+/* ── Reference style overrides ── */
+.op-page {
+  position: relative;
+  isolation: isolate;
+  background: transparent;
+}
+
+.op-page::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background-image: url('https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1800&q=80');
+  background-size: cover;
+  background-position: center;
+  filter: brightness(.3) contrast(1.07) saturate(1.04);
+}
+
+.op-page::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(96deg, rgba(2,12,23,.92) 0%, rgba(4,14,24,.7) 45%, rgba(4,14,24,.58) 100%),
+    radial-gradient(920px 420px at 0% -5%, rgba(244,164,53,.22), transparent 68%);
+}
+
+.op-hero {
+  background: rgba(2,13,24,.82);
+  border-bottom: 1px solid rgba(255,255,255,.16);
+  backdrop-filter: blur(8px);
+}
+
+.op-tag,
+.op-filter-btn,
+.op-track-btn,
+.op-refresh-btn,
+.op-status-pill,
+.op-reorder-btn {
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.op-title,
+.op-empty-title,
+.aoh-id,
+.op-card-id {
+  font-family: 'Cormorant Garamond', serif;
+  letter-spacing: .4px;
+}
+
+.op-sub,
+.op-card-meta,
+.op-empty-sub,
+.op-summary-row,
+.op-eta-label,
+.mini-label,
+.tracker-step-label,
+.dc-label,
+.dc-unit {
+  color: rgba(255,255,255,.68);
+}
+
+.op-track-bar,
+.op-track-result,
+.active-order-hero,
+.op-card,
+.op-summary,
+.op-skel,
+.op-cancelled-bar,
+.op-eta {
+  background: linear-gradient(165deg, rgba(2,13,24,.95) 0%, rgba(7,21,38,.84) 100%);
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 8px;
+}
+
+.op-card:hover,
+.active-order-hero:hover,
+.op-track-result:hover {
+  border-color: rgba(244,164,53,.42);
+  box-shadow: 0 16px 42px rgba(0,0,0,.34);
+}
+
+.op-track-bar input,
+.op-track-bar input::placeholder {
+  color: rgba(255,255,255,.86);
+}
+
+.op-track-bar input::placeholder {
+  color: rgba(255,255,255,.5);
+}
+
+.op-track-btn,
+.op-reorder-btn {
+  font-size: .76rem;
+  font-weight: 800;
+}
+
+.op-filter-btn,
+.op-refresh-btn {
+  font-size: .74rem;
+  font-weight: 700;
+}
+
+.op-filter-btn {
+  background: rgba(255,255,255,.08);
+  border-color: rgba(255,255,255,.2);
+  color: rgba(255,255,255,.84);
+}
+
+.op-filter-btn.active {
+  background: var(--accent);
+  color: #0A0A0A;
+  box-shadow: 0 10px 24px rgba(244,164,53,.26);
+}
+
+.op-refresh-btn,
+.op-track-btn {
+  border-color: rgba(255,255,255,.22);
+}
+
+.op-item-row {
+  border-bottom-color: rgba(255,255,255,.1);
+}
+
+.op-summary-total {
+  border-top-color: rgba(255,255,255,.14);
+}
+
+.dc-progress-track,
+.mini-line,
+.tracker-line {
+  background: rgba(255,255,255,.18);
+}
+
 @keyframes opFadeUp { from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);} }
 
 @media(max-width:768px){
@@ -367,6 +503,109 @@ const CSS = `
   .dc-divider{display:none;}
   .tracker-step-desc{display:none;}
   .op-card-header{flex-wrap:wrap;}
+}
+
+/* Unified promo orders polish */
+.op-hero,
+.op-track-bar,
+.active-order-hero,
+.op-card,
+.op-summary,
+.op-track-result,
+.op-skel,
+.op-cancelled-bar,
+.op-eta {
+  border-radius: 8px;
+  border-color: rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(8px);
+}
+
+.op-tag,
+.op-filter-btn,
+.op-track-btn,
+.op-refresh-btn,
+.op-status-pill,
+.op-reorder-btn {
+  border-radius: 4px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.op-title {
+  text-transform: uppercase;
+  letter-spacing: 1.1px;
+}
+
+.aoh-id {
+  font-size: clamp(1.5rem, 3vw, 2.3rem);
+}
+
+.delivery-countdown {
+  border-radius: 8px;
+}
+
+.tracker-dot,
+.mini-dot {
+  box-shadow: none;
+}
+
+.op-track-bar input {
+  font-size: 0.88rem;
+  letter-spacing: 0.3px;
+}
+
+.op-filter-btn.active,
+.op-reorder-btn,
+.op-track-btn {
+  box-shadow: 0 12px 28px rgba(246, 181, 21, 0.22);
+}
+
+@media (max-width: 900px) {
+  .op-filters {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+  }
+
+  .op-refresh-btn {
+    margin-left: 0;
+    justify-content: center;
+  }
+
+  .op-track-bar {
+    flex-wrap: wrap;
+  }
+
+  .op-track-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 560px) {
+  .op-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .op-card-header {
+    padding: 14px;
+  }
+
+  .op-card-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .op-summary {
+    padding: 12px;
+  }
+
+  .op-reorder-btn {
+    padding: 11px;
+  }
+
+  .dc-time {
+    font-size: 2.1rem;
+  }
 }
 `;
 
@@ -807,11 +1046,11 @@ function OrderCard({ order, idx, onReorder }) {
           <div className="op-summary">
             <div className="op-summary-row">
               <span>Subtotal</span>
-              <span>${subtotal.toFixed(2)}</span>
+              <span>₹{Math.round((order.total || 0))}</span>
             </div>
             <div className="op-summary-row">
               <span>Delivery Fee</span>
-              <span>$2.99</span>
+              <span>₹30</span>
             </div>
             <div className="op-summary-row">
               <span>Tax (8%)</span>
@@ -891,19 +1130,10 @@ export default function MyOrdersPage({
       if (!silent) setLoading(true);
       else setRefreshing(true);
       try {
-        // ✅ fetch with userId
         const res = await fetch(`${API_BASE}/orders/my?userId=${user.id}`);
         const data = await res.json();
         if (data.success) {
-          // ✅ deduplicate on frontend too
-          const seen = new Set();
-          const unique = data.orders.filter((o) => {
-            const key = o.id || o.orderId || o._id;
-            if (seen.has(key)) return false;
-            seen.add(key);
-            return true;
-          });
-          setOrders(unique);
+          setOrders(data.orders || []);
         }
       } catch {
       } finally {

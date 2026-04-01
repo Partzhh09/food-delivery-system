@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const orderItemSchema = new mongoose.Schema({
   menuItem: { type: mongoose.Schema.Types.ObjectId, ref: "MenuItem", required: true },
-  name: String,       // Snapshot at time of order
+  name: String,
   price: Number,
   emoji: String,
   quantity: { type: Number, required: true, min: 1 },
@@ -11,7 +11,12 @@ const orderItemSchema = new mongoose.Schema({
 
 const orderSchema = new mongoose.Schema(
   {
-    orderNumber: { type: String, unique: true },
+    orderNumber: {
+      type: String,
+      unique: true,
+      // Generate an order number like ORD-<timestamp>-<random>
+      default: () => `ORD-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+    },
 
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
 
@@ -75,14 +80,11 @@ const orderSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Auto-generate order number before saving
+// pre-save: ensure orderNumber exists & track status history
 orderSchema.pre("save", function (next) {
   if (!this.orderNumber) {
-    const ts = Date.now().toString(36).toUpperCase();
-    const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
-    this.orderNumber = `FF-${ts}-${rand}`;
+    this.orderNumber = `ORD-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
   }
-  // Push status into history on change
   if (this.isModified("status")) {
     this.statusHistory.push({ status: this.status, timestamp: new Date() });
   }
