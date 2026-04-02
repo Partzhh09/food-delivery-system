@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import MyOrdersPage from "./MyOrdersPage";
 import HeroSection from "./HeroSection";
 import CheckoutPage from "./CheckoutPage";
@@ -1135,6 +1135,145 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-hei
     justify-content: center;
   }
 }
+
+/* ===== PREMIUM SPEED LAYER ===== */
+:root {
+  --premium-gold: #f3b338;
+  --premium-gold-soft: #ffd98a;
+  --premium-surface: linear-gradient(162deg, rgba(4,14,26,.95) 0%, rgba(9,27,46,.84) 100%);
+  --premium-edge: rgba(255,255,255,.2);
+  --premium-shadow: 0 20px 46px rgba(0,0,0,.34);
+}
+
+body {
+  background:
+    radial-gradient(1200px 420px at 6% -8%, rgba(243,179,56,.14), transparent 64%),
+    radial-gradient(900px 360px at 100% 0%, rgba(255,255,255,.05), transparent 68%),
+    var(--bg);
+}
+
+.nav {
+  background: rgba(3,12,23,.86);
+  border-bottom-color: rgba(255,255,255,.18);
+  box-shadow: 0 14px 30px rgba(0,0,0,.28);
+}
+
+.home-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  background: linear-gradient(110deg, transparent 0%, rgba(255,255,255,.06) 48%, transparent 100%);
+  transform: translateX(-100%);
+  animation: heroSweep 7s ease-in-out infinite;
+}
+
+@keyframes heroSweep {
+  0%, 16% { transform: translateX(-100%); }
+  44%, 100% { transform: translateX(100%); }
+}
+
+.section,
+.restaurants-grid,
+.popular-scroll,
+.menu-grid,
+.reviews-grid {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 820px;
+}
+
+.restaurant-card,
+.food-card,
+.step-card,
+.testimonial-card,
+.review-card,
+.promo,
+.write-review,
+.auth-container,
+.home-search,
+.search-suggestions,
+.menu-suggestions,
+.cart-sidebar,
+.cart-item {
+  background: var(--premium-surface);
+  border-color: var(--premium-edge);
+  box-shadow: var(--premium-shadow);
+}
+
+.restaurant-card:hover,
+.food-card:hover,
+.step-card:hover,
+.testimonial-card:hover,
+.review-card:hover,
+.cart-item:hover {
+  transform: translateY(-8px) scale(1.01);
+  border-color: rgba(243,179,56,.45);
+  box-shadow: 0 24px 60px rgba(0,0,0,.38);
+}
+
+.btn-large,
+.btn-primary,
+.search-submit,
+.checkout-btn,
+.add-btn {
+  background: linear-gradient(135deg, var(--premium-gold), var(--premium-gold-soft));
+  color: #111;
+}
+
+.btn-large:hover,
+.btn-primary:hover,
+.search-submit:hover,
+.checkout-btn:hover,
+.add-btn:hover {
+  filter: brightness(1.03);
+}
+
+.btn-outline-large,
+.btn-ghost {
+  border-color: rgba(255,255,255,.3);
+  background: rgba(255,255,255,.08);
+  color: #fff;
+}
+
+.btn-outline-large:hover,
+.btn-ghost:hover {
+  border-color: var(--premium-gold);
+  color: var(--premium-gold);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .home-hero::before {
+    display: none;
+  }
+}
+
+@media(max-width:768px){
+  .hero-bg {
+    transform: none;
+    filter: brightness(.58) contrast(1.04);
+  }
+
+  .home-hero::before {
+    animation: none;
+    opacity: .35;
+  }
+
+  .restaurant-card,
+  .food-card,
+  .step-card,
+  .testimonial-card,
+  .review-card,
+  .cart-item {
+    box-shadow: 0 10px 22px rgba(0,0,0,.24);
+  }
+}
 `;
 
 // ─── HighlightMatch ───────────────────────────────────────────────────────────
@@ -1218,7 +1357,7 @@ function CartItemRow({ item, onQtyChange, onRemove }) {
       <div className="cart-item-info">
         <div className="cart-item-name">{item.name}</div>
         <div className="cart-item-price">
-          ${(item.price * item.qty).toFixed(2)}
+          ₹{Math.round(item.price * item.qty)}
         </div>
       </div>
       <div className="qty-controls">
@@ -2343,7 +2482,7 @@ function CartSidebar({
               <div className="cart-total">
                 <span>Total</span>
                 <span key={totalPopKey} className="cart-total-amount pop">
-                  ${total.toFixed(2)}
+                  ₹{Math.round(total)}
                 </span>
               </div>
               <button
@@ -2727,9 +2866,15 @@ export default function FoodDelivery() {
       .slice(0, 6);
   };
 
-  const homeSuggs = getHomeSuggestions(homeSearchVal);
+  const homeSuggs = useMemo(
+    () => getHomeSuggestions(homeSearchVal),
+    [homeSearchVal, liveMenu],
+  );
   const showHomeSugg = homeSearchFocused && homeSearchVal.trim().length > 0;
-  const menuSuggs = getMenuSuggestions(searchQuery);
+  const menuSuggs = useMemo(
+    () => getMenuSuggestions(searchQuery),
+    [searchQuery, liveMenu],
+  );
   const showMenuSugg =
     menuSearchFocused && searchQuery.trim().length > 0 && menuSuggs.length > 0;
 
@@ -2849,14 +2994,16 @@ export default function FoodDelivery() {
   const tax = subtotal * 0.08;
   const total = subtotal + deliveryFee + tax;
 
-  const filteredMenu = liveMenu.filter((item) => {
-    const matchCat =
-      activeCategory === "all" || item.category === activeCategory;
-    const matchSearch =
-      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.desc.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchCat && matchSearch;
-  });
+  const filteredMenu = useMemo(() => {
+    const q = searchQuery.toLowerCase();
+    return liveMenu.filter((item) => {
+      const matchCat =
+        activeCategory === "all" || item.category === activeCategory;
+      const matchSearch =
+        item.name.toLowerCase().includes(q) || item.desc.toLowerCase().includes(q);
+      return matchCat && matchSearch;
+    });
+  }, [liveMenu, activeCategory, searchQuery]);
 
   // Shared props for Nav
   const navProps = {
