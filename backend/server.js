@@ -11,10 +11,39 @@ app.use(cors({ origin: "*", methods: ["GET","POST","PUT","PATCH","DELETE"], allo
 app.use(express.json());
 app.use("/admin", express.static(path.join(__dirname, "../admin")));
 
-const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/forkfleet";
-mongoose.connect(MONGO_URI)
-  .then(() => { console.log("✅ MongoDB connected successfully"); seedDatabase(); })
-  .catch(err => { console.error("❌ MongoDB connection failed:", err.message); process.exit(1); });
+const DEFAULT_LOCAL_MONGO_URI = "mongodb://127.0.0.1:27017/forkfleet";
+let memoryMongoServer = null;
+
+async function connectMongo() {
+  const mongoUri = (process.env.MONGO_URI || DEFAULT_LOCAL_MONGO_URI).trim();
+
+  try {
+    await mongoose.connect(mongoUri);
+    console.log(`✅ MongoDB connected successfully: ${mongoUri}`);
+    return;
+  } catch (err) {
+    console.error("❌ MongoDB connection failed:", err.message);
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("MongoDB is not reachable in production mode");
+  }
+
+  try {
+    const { MongoMemoryServer } = require("mongodb-memory-server");
+    memoryMongoServer = await MongoMemoryServer.create({
+      instance: { dbName: "forkfleet" },
+    });
+    const memoryUri = memoryMongoServer.getUri();
+
+    await mongoose.connect(memoryUri);
+    console.log("⚠️  Using in-memory MongoDB fallback for development");
+  } catch (fallbackErr) {
+    throw new Error(
+      `Unable to connect to local MongoDB and fallback failed: ${fallbackErr.message}`
+    );
+  }
+}
 
 const RAZORPAY_KEY_ID     = process.env.RAZORPAY_KEY_ID     || "rzp_test_YOUR_KEY_ID";
 const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET || "YOUR_KEY_SECRET";
@@ -35,7 +64,10 @@ const orderSchema = new mongoose.Schema({
   deliveryAddress:{type:String,default:"Not provided"}, customerName:{type:String,default:""}, customerPhone:{type:String,default:""}, customerEmail:{type:String,default:""}, notes:{type:String,default:""},
   userId:{type:mongoose.Schema.Types.ObjectId,ref:"User",default:null},
   paymentMethod:{type:String,default:"cod"}, paymentId:{type:String,default:null}, paymentStatus:{type:String,default:"pending"},
-  status:{type:String,enum:["pending","confirmed","preparing","out_for_delivery","delivered","cancelled"],default:"pending"}
+  status:{type:String,enum:["pending","confirmed","preparing","out_for_delivery","delivered","cancelled"],default:"pending"},
+  cancelledAt:{type:Date,default:null},
+  cancelReason:{type:String,default:""},
+  cancelledBy:{type:String,default:""}
 },{ timestamps:true });
 const reviewSchema = new mongoose.Schema({ itemId:{type:Number,required:true}, userId:{type:mongoose.Schema.Types.ObjectId,ref:"User",default:null}, user:{type:String,required:true}, avatar:{type:String,default:""}, rating:{type:Number,required:true,min:1,max:5}, text:{type:String,required:true}, date:{type:String,default:"Just now"} },{ timestamps:true });
 const couponSchema = new mongoose.Schema({ code:{type:String,required:true,unique:true,uppercase:true}, type:{type:String,enum:["percent","flat","free_delivery"],required:true}, discount:{type:Number,default:0}, label:{type:String,default:""}, minOrder:{type:Number,default:0}, maxUses:{type:Number,default:999}, usedCount:{type:Number,default:0}, active:{type:Boolean,default:true}, expiresAt:{type:Date,default:null} },{ timestamps:true });
@@ -156,7 +188,8 @@ app.get("/api/orders/my",async(req,res)=>{ try{ const{userId}=req.query; if(!use
 app.get("/api/orders/:orderId",async(req,res)=>{ try{ const order=await Order.findOne({orderId:req.params.orderId}); if(!order) return res.status(404).json({success:false,message:"Order not found"}); res.json({success:true,order:{...order.toObject(),id:order.orderId}}); }catch(err){res.status(500).json({success:false,message:err.message});} });
 app.delete("/api/admin/orders/:id",adminMiddleware,async(req,res)=>{ try{ const order=await Order.findOneAndDelete({orderId:req.params.id}); if(!order) return res.status(404).json({success:false,message:"Order not found"}); res.json({success:true,message:"Order deleted"}); }catch(err){res.status(500).json({success:false,message:err.message});} });
 app.get("/api/admin/orders",adminMiddleware,async(req,res)=>{ try{ const orders=await Order.find().sort({createdAt:-1}); const seen=new Set(); const unique=orders.filter(o=>{if(seen.has(o.orderId))return false;seen.add(o.orderId);return true;}); res.json({success:true,orders:unique.map(o=>({...o.toObject(),id:o.orderId}))}); }catch(err){res.status(500).json({success:false,message:err.message});} });
-app.patch("/api/admin/orders/:id/status",adminMiddleware,async(req,res)=>{ try{ const{status}=req.body; const valid=["pending","confirmed","preparing","out_for_delivery","delivered","cancelled"]; if(!valid.includes(status)) return res.status(400).json({success:false,message:"Invalid status"}); const order=await Order.findOneAndUpdate({orderId:req.params.id},{status},{new:true}); if(!order) return res.status(404).json({success:false,message:"Order not found"}); res.json({success:true,order:{...order.toObject(),id:order.orderId}}); }catch(err){res.status(500).json({success:false,message:err.message});} });
+app.patch("/api/admin/orders/:id/status",adminMiddleware,async(req,res)=>{ try{ const{status,cancelReason}=req.body; const valid=["pending","confirmed","preparing","out_for_delivery","delivered","cancelled"]; if(!valid.includes(status)) return res.status(400).json({success:false,message:"Invalid status"}); const update={status}; if(status==="cancelled"){ update.cancelledAt=new Date(); update.cancelReason=(cancelReason||"Cancelled by admin").toString().trim(); update.cancelledBy=req.admin?.email||"admin"; } else { update.cancelledAt=null; update.cancelReason=""; update.cancelledBy=""; } const order=await Order.findOneAndUpdate({orderId:req.params.id},update,{new:true}); if(!order) return res.status(404).json({success:false,message:"Order not found"}); res.json({success:true,order:{...order.toObject(),id:order.orderId}}); }catch(err){res.status(500).json({success:false,message:err.message});} });
+app.patch("/api/admin/orders/:id/payment",adminMiddleware,async(req,res)=>{ try{ const{paymentStatus,paymentId}=req.body; if(!paymentStatus) return res.status(400).json({success:false,message:"paymentStatus is required"}); const update={paymentStatus,paymentId:paymentId||null}; if(paymentStatus==="paid"){ update.status="confirmed"; } const order=await Order.findOneAndUpdate({orderId:req.params.id},update,{new:true}); if(!order) return res.status(404).json({success:false,message:"Order not found"}); res.json({success:true,order:{...order.toObject(),id:order.orderId}}); }catch(err){res.status(500).json({success:false,message:err.message});} });
 
 // REVIEWS
 app.get("/api/reviews",async(req,res)=>{ try{ const q=req.query.itemId?{itemId:parseInt(req.query.itemId)}:{}; const reviews=await Review.find(q).sort({createdAt:-1}); res.json({success:true,reviews}); }catch(err){res.status(500).json({success:false,message:err.message});} });
@@ -191,4 +224,31 @@ app.delete("/api/admin/users/:id", adminMiddleware, async (req, res) => {
 app.get("/api/admin/stats",adminMiddleware,async(req,res)=>{ try{ const[totalOrders,totalUsers,totalMenuItems,totalReviews,allOrders,allReviews,topItems,recentOrders]=await Promise.all([Order.countDocuments(),User.countDocuments({role:"customer"}),MenuItem.countDocuments(),Review.countDocuments(),Order.find(),Review.find(),MenuItem.find({available:true}).sort({reviews:-1}).limit(5),Order.find().sort({createdAt:-1}).limit(5)]); const totalRevenue=allOrders.reduce((s,o)=>s+(o.total||0),0); const avgRating=allReviews.length?(allReviews.reduce((s,r)=>s+r.rating,0)/allReviews.length).toFixed(1):"0.0"; const seen=new Set(); const unique=recentOrders.filter(o=>{if(seen.has(o.orderId))return false;seen.add(o.orderId);return true;}); res.json({success:true,stats:{totalOrders,totalRevenue:totalRevenue.toFixed(2),totalUsers,totalMenuItems,totalReviews,avgRating,recentOrders:unique.map(o=>({...o.toObject(),id:o.orderId})),topItems:topItems.map((item,i)=>({...item.toObject(),id:i+1}))}}); }catch(err){res.status(500).json({success:false,message:err.message});} });
 
 const PORT=process.env.PORT||5000;
-app.listen(PORT,()=>{ console.log(`🚀 Fork.Fleet API running on http://localhost:${PORT}`); console.log(`🛠️  Admin panel: http://localhost:${PORT}/admin`); });
+
+async function startServer() {
+  try {
+    await connectMongo();
+    await seedDatabase();
+
+    app.listen(PORT,()=>{
+      console.log(`🚀 Fork.Fleet API running on http://localhost:${PORT}`);
+      console.log(`🛠️  Admin panel: http://localhost:${PORT}/admin`);
+    });
+  } catch (err) {
+    console.error("❌ Backend startup failed:", err.message);
+    process.exit(1);
+  }
+}
+
+process.on("SIGINT", async () => {
+  try {
+    await mongoose.connection.close();
+    if (memoryMongoServer) {
+      await memoryMongoServer.stop();
+    }
+  } finally {
+    process.exit(0);
+  }
+});
+
+startServer();

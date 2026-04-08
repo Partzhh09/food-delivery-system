@@ -620,6 +620,87 @@ const CSS = `
   margin-top: 2px;
 }
 
+.co-qr-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+  display: grid;
+  place-items: center;
+  z-index: 400;
+  padding: 16px;
+}
+
+.co-qr-modal {
+  width: min(420px, 100%);
+  background: linear-gradient(160deg, rgba(2, 13, 24, 0.98) 0%, rgba(7, 22, 38, 0.96) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 10px;
+  box-shadow: 0 26px 60px rgba(0, 0, 0, 0.45);
+  padding: 20px;
+}
+
+.co-qr-title {
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  margin-bottom: 8px;
+}
+
+.co-qr-sub {
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 0.84rem;
+  margin-bottom: 14px;
+}
+
+.co-qr-img-wrap {
+  background: #fff;
+  border-radius: 8px;
+  padding: 12px;
+  width: fit-content;
+  margin: 0 auto 10px;
+}
+
+.co-qr-img {
+  width: 220px;
+  height: 220px;
+  display: block;
+}
+
+.co-qr-total {
+  text-align: center;
+  color: #fff;
+  font-weight: 800;
+  margin-bottom: 14px;
+}
+
+.co-qr-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.co-qr-btn {
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  padding: 11px 12px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.co-qr-btn.secondary {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+
+.co-qr-btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #0a0a0a;
+}
+
 @media (max-width: 980px) {
   .co-inner {
     grid-template-columns: 1fr;
@@ -807,6 +888,7 @@ export default function CheckoutPage({ cart, user, setActivePage, setCart, showT
   const [couponError, setCouponError] = useState("");
   const [placing, setPlacing] = useState(false);
   const [success, setSuccess] = useState(null);
+  const [showQrFallback, setShowQrFallback] = useState(false);
   const [citySuggestions, setCitySuggestions] = useState([]);
   const [pinSuggestions, setPinSuggestions] = useState([]);
 
@@ -894,58 +976,83 @@ export default function CheckoutPage({ cart, user, setActivePage, setCart, showT
     return true;
   };
 
-  const createBackendOrder = async (paymentId = null, paymentStatus = "pending") => {
-    let res;
-    try {
-      res = await fetch(`${API_BASE}/orders`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          items: cart.map((item) => ({
-            id: item.id,
-            name: item.name,
-            price: item.price,
-            qty: item.qty,
-            customizations: item.customizations || {},
-          })),
-          total: parseFloat(total.toFixed(2)),
-          subtotal: parseFloat(subtotal.toFixed(2)),
-          deliveryFee,
-          tax: parseFloat(tax.toFixed(2)),
-          discount: parseFloat(discount.toFixed(2)),
-          couponCode: couponApplied?.code || null,
-          deliveryAddress: `${form.address}, ${form.city} - ${form.pincode}`,
-          customerName: form.name,
-          customerPhone: form.phone,
-          customerEmail: form.email,
-          notes: form.notes,
-          userId: user?.id || null,
-          paymentMethod: payMethod,
-          paymentId,
-          paymentStatus,
-        }),
-      });
-    } catch (err) {
-      if (err instanceof TypeError) {
-        throw new Error(
-          `Cannot connect to backend at ${API_BASE}. Start the backend server and try again.`,
-        );
+  const createBackendOrder = async (
+    paymentId = null,
+    paymentStatus = "pending",
+    paymentMethodOverride = null,
+  ) => {
+    const payload = {
+      items: cart.map((item) => ({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        qty: item.qty,
+        customizations: item.customizations || {},
+      })),
+      total: parseFloat(total.toFixed(2)),
+      subtotal: parseFloat(subtotal.toFixed(2)),
+      deliveryFee,
+      tax: parseFloat(tax.toFixed(2)),
+      discount: parseFloat(discount.toFixed(2)),
+      couponCode: couponApplied?.code || null,
+      deliveryAddress: `${form.address}, ${form.city} - ${form.pincode}`,
+      customerName: form.name,
+      customerPhone: form.phone,
+      customerEmail: form.email,
+      notes: form.notes,
+      userId: user?.id || null,
+      paymentMethod: paymentMethodOverride || payMethod,
+      paymentId,
+      paymentStatus,
+    };
+
+    const baseWithoutApi = API_BASE.replace(/\/api$/i, "");
+    const orderEndpoints = [`${API_BASE}/orders`, `${baseWithoutApi}/orders`];
+    const endpointsToTry = [...new Set(orderEndpoints)];
+
+    let lastError = null;
+
+    for (const endpoint of endpointsToTry) {
+      let res;
+      try {
+        res = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+      } catch (err) {
+        if (err instanceof TypeError) {
+          throw new Error(
+            `Cannot connect to backend at ${API_BASE}. Start the backend server and try again.`,
+          );
+        }
+        throw err;
       }
-      throw err;
+
+      let data = null;
+      try {
+        data = await res.json();
+      } catch {
+        data = null;
+      }
+
+      if (res.ok && data?.success) {
+        return data;
+      }
+
+      const message = data?.message || `Order request failed (${res.status})`;
+      const isRouteMismatch =
+        res.status === 404 || /route\s+not\s+found/i.test(message);
+
+      if (isRouteMismatch) {
+        lastError = new Error(message);
+        continue;
+      }
+
+      throw new Error(message);
     }
 
-    let data = null;
-    try {
-      data = await res.json();
-    } catch {
-      data = null;
-    }
-
-    if (!res.ok || !data?.success) {
-      throw new Error(data?.message || `Order request failed (${res.status})`);
-    }
-
-    return data;
+    throw lastError || new Error("Unable to place order. Please try again.");
   };
 
   const handleRazorpay = async () => {
@@ -958,12 +1065,18 @@ export default function CheckoutPage({ cart, user, setActivePage, setCart, showT
       });
       const createOrderData = await createOrderRes.json();
 
-      if (!createOrderData.success) {
-        throw new Error(createOrderData.message || "Unable to start payment");
+      if (!createOrderRes.ok || !createOrderData.success) {
+        setShowQrFallback(true);
+        setPlacing(false);
+        showToast("Online payment unavailable. Use QR fallback.");
+        return;
       }
 
       if (!window.Razorpay) {
-        throw new Error("Payment SDK not loaded. Please retry.");
+        setShowQrFallback(true);
+        setPlacing(false);
+        showToast("Payment SDK unavailable. Use QR fallback.");
+        return;
       }
 
       const options = {
@@ -1016,6 +1129,26 @@ export default function CheckoutPage({ cart, user, setActivePage, setCart, showT
     } catch (err) {
       setPlacing(false);
       showToast(`Payment failed: ${err.message}`);
+    }
+  };
+
+  const handleFakeQrSubmit = async () => {
+    setPlacing(true);
+    try {
+      const fakePaymentId = `FAKEQR_${Date.now()}`;
+      const data = await createBackendOrder(
+        fakePaymentId,
+        "awaiting_admin_confirmation",
+        "qr",
+      );
+      setSuccess(data.order);
+      setCart([]);
+      setShowQrFallback(false);
+      showToast("QR submitted. Admin will confirm payment shortly.");
+    } catch (err) {
+      showToast(`Error: ${err.message}`);
+    } finally {
+      setPlacing(false);
     }
   };
 
@@ -1400,6 +1533,43 @@ export default function CheckoutPage({ cart, user, setActivePage, setCart, showT
           {placing ? "Processing..." : "Place order"}
         </button>
       </div>
+
+      {showQrFallback && (
+        <div className="co-qr-overlay" onClick={() => !placing && setShowQrFallback(false)}>
+          <div className="co-qr-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="co-qr-title">Demo QR Payment</div>
+            <div className="co-qr-sub">
+              Scan this fake QR code, then click "I Have Paid". Admin will accept payment from panel.
+            </div>
+
+            <div className="co-qr-img-wrap">
+              <img
+                className="co-qr-img"
+                alt="Demo QR"
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=FORKFLEET-DEMO-QR-${Math.round(total)}-${Date.now()}`}
+              />
+            </div>
+            <div className="co-qr-total">Payable Amount: ₹{Math.round(total)}</div>
+
+            <div className="co-qr-actions">
+              <button
+                className="co-qr-btn secondary"
+                onClick={() => setShowQrFallback(false)}
+                disabled={placing}
+              >
+                Cancel
+              </button>
+              <button
+                className="co-qr-btn primary"
+                onClick={handleFakeQrSubmit}
+                disabled={placing}
+              >
+                {placing ? "Submitting..." : "I Have Paid"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

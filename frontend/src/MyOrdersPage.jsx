@@ -164,46 +164,94 @@ const CSS = `
 
 /* ── Active order hero card ── */
 .active-order-hero {
-  background: linear-gradient(135deg, #1A1200 0%, #261800 60%, #1A1200 100%);
-  border: 1px solid rgba(244,164,53,.25); border-radius: 24px;
-  padding: 32px; margin-bottom: 28px; position: relative; overflow: hidden;
+  background:
+    radial-gradient(1200px 320px at 105% -10%, rgba(255, 202, 112, 0.22), transparent 52%),
+    radial-gradient(600px 240px at -5% 115%, rgba(255, 142, 43, 0.16), transparent 60%),
+    linear-gradient(130deg, #1b1202 0%, #241607 48%, #120d04 100%);
+  border: 1px solid rgba(255, 199, 114, 0.28);
+  border-radius: 28px;
+  padding: 34px;
+  margin-bottom: 30px;
+  position: relative;
+  overflow: hidden;
+  box-shadow:
+    0 24px 54px rgba(0, 0, 0, 0.34),
+    inset 0 1px 0 rgba(255, 246, 224, 0.08),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.4);
   animation: opFadeUp .5s cubic-bezier(.34,1.3,.64,1) both;
 }
 [data-theme="light"] .active-order-hero {
-  background: linear-gradient(135deg,#FFF8E7,#FFF3CC,#FFF8E7);
-  border-color: rgba(244,164,53,.35);
+  background:
+    radial-gradient(960px 280px at 98% -14%, rgba(244, 164, 53, 0.2), transparent 58%),
+    linear-gradient(132deg, #fffaf0 0%, #fff4dd 48%, #ffedc5 100%);
+  border-color: rgba(244,164,53,.32);
+  box-shadow:
+    0 16px 34px rgba(225, 171, 84, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.78);
 }
 .active-order-hero::before {
-  content: ''; position: absolute; right: -80px; top: -80px;
-  width: 300px; height: 300px;
-  background: radial-gradient(circle, rgba(244,164,53,.18) 0%, transparent 70%);
+  content: '';
+  position: absolute;
+  right: -56px;
+  top: -56px;
+  width: 280px;
+  height: 280px;
+  background: radial-gradient(circle, rgba(255, 211, 134, 0.24) 0%, transparent 70%);
+  filter: blur(1px);
   pointer-events: none;
 }
-.aoh-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 28px; flex-wrap: wrap; }
-.aoh-id { font-family: var(--font-display); font-size: 1.5rem; font-weight: 900; color: #fff; }
+.active-order-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+  mask-image: radial-gradient(circle at 55% 50%, rgba(0, 0, 0, 0.35), transparent 78%);
+  pointer-events: none;
+  opacity: .22;
+}
+.aoh-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 28px; flex-wrap: wrap; position: relative; z-index: 1; }
+.aoh-id {
+  font-family: var(--font-display);
+  font-size: clamp(1.45rem, 2.2vw, 1.95rem);
+  font-weight: 900;
+  letter-spacing: .3px;
+  color: #fff;
+  text-shadow: 0 8px 24px rgba(0, 0, 0, 0.32);
+}
 [data-theme="light"] .aoh-id { color: var(--text); }
-.aoh-date { color: rgba(255,255,255,.5); font-size: .8rem; margin-top: 4px; }
+.aoh-date { color: rgba(255,255,255,.67); font-size: .8rem; margin-top: 5px; letter-spacing: .2px; }
 [data-theme="light"] .aoh-date { color: var(--muted); }
 .aoh-badge {
   display: inline-flex; align-items: center; gap: 7px;
   padding: 8px 16px; border-radius: 50px; font-size: .8rem; font-weight: 700;
-  border: 1px solid; flex-shrink: 0;
+  border: 1px solid; flex-shrink: 0; position: relative; z-index: 1;
 }
 
 /* ── Delivery countdown ── */
 .delivery-countdown {
-  background: rgba(0,0,0,.3); border: 1px solid rgba(244,164,53,.2);
-  border-radius: 16px; padding: 20px 24px; margin-bottom: 28px;
+  background: linear-gradient(160deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+  border: 1px solid rgba(255,214,146,.24);
+  border-radius: 18px;
+  padding: 20px 24px;
+  margin-bottom: 28px;
   display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+  backdrop-filter: blur(6px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+  position: relative;
+  z-index: 1;
 }
 [data-theme="light"] .delivery-countdown {
-  background: rgba(255,255,255,.7); border-color: rgba(244,164,53,.3);
+  background: linear-gradient(160deg, rgba(255,255,255,.84), rgba(255,255,255,.62));
+  border-color: rgba(244,164,53,.28);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.9);
 }
 .dc-icon { font-size: 2.5rem; flex-shrink: 0; animation: scooterBounce 2s ease-in-out infinite; }
 @keyframes scooterBounce { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-6px);} }
 .dc-label { font-size: .75rem; color: rgba(255,255,255,.5); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
 [data-theme="light"] .dc-label { color: var(--muted); }
-.dc-time { font-family: var(--font-display); font-size: 2.8rem; font-weight: 900; color: var(--accent); line-height: 1; }
+.dc-time { font-family: var(--font-display); font-size: 2.8rem; font-weight: 900; color: #ffd488; line-height: 1; text-shadow: 0 6px 20px rgba(255, 166, 56, .18); }
+[data-theme="light"] .dc-time { color: #cf7a16; text-shadow: none; }
 .dc-unit { font-size: .85rem; color: rgba(255,255,255,.5); margin-top: 4px; }
 [data-theme="light"] .dc-unit { color: var(--muted); }
 .dc-divider { width: 1px; height: 60px; background: rgba(255,255,255,.1); flex-shrink: 0; }
@@ -211,9 +259,9 @@ const CSS = `
 .dc-progress-wrap { flex: 1; min-width: 200px; }
 .dc-progress-label { display: flex; justify-content: space-between; font-size: .78rem; color: rgba(255,255,255,.5); margin-bottom: 8px; }
 [data-theme="light"] .dc-progress-label { color: var(--muted); }
-.dc-progress-track { height: 8px; background: rgba(255,255,255,.1); border-radius: 4px; overflow: hidden; }
+.dc-progress-track { height: 9px; background: rgba(255,255,255,.12); border-radius: 999px; overflow: hidden; }
 [data-theme="light"] .dc-progress-track { background: var(--surface3); }
-.dc-progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #ff6b35); border-radius: 4px; transition: width 1s ease; }
+.dc-progress-fill { height: 100%; background: linear-gradient(90deg, #ffc46a, #ff9f4a 45%, #ff7b47); border-radius: 999px; transition: width 1s ease; box-shadow: 0 4px 16px rgba(255, 144, 52, .34); }
 
 /* ── Tracker stepper ── */
 .tracker-wrap { margin-bottom: 24px; }
@@ -328,6 +376,41 @@ const CSS = `
   display: flex; align-items: center; justify-content: center; gap: 8px;
 }
 .op-reorder-btn:hover { background: #ffb84d; transform: scale(1.01); }
+
+.op-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.op-actions.single {
+  grid-template-columns: 1fr;
+}
+
+.op-print-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.24);
+  background: rgba(255,255,255,.06);
+  color: var(--text);
+  font-size: .82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .22s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-body);
+}
+
+.op-print-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(244,164,53,.08);
+}
 
 /* ── Cancelled ── */
 .op-cancelled-bar {
@@ -560,6 +643,65 @@ const CSS = `
   box-shadow: 0 12px 28px rgba(246, 181, 21, 0.22);
 }
 
+/* Keep this page's premium dark palette even when global theme is light */
+[data-theme="light"] .op-page {
+  color-scheme: dark;
+}
+
+[data-theme="light"] .active-order-hero {
+  background:
+    radial-gradient(1200px 320px at 105% -10%, rgba(255, 202, 112, 0.22), transparent 52%),
+    radial-gradient(600px 240px at -5% 115%, rgba(255, 142, 43, 0.16), transparent 60%),
+    linear-gradient(130deg, #1b1202 0%, #241607 48%, #120d04 100%);
+  border-color: rgba(255, 199, 114, 0.28);
+  box-shadow:
+    0 24px 54px rgba(0, 0, 0, 0.34),
+    inset 0 1px 0 rgba(255, 246, 224, 0.08),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="light"] .aoh-id,
+[data-theme="light"] .tracker-step-label.done,
+[data-theme="light"] .tracker-step-label.active {
+  color: #fff;
+}
+
+[data-theme="light"] .aoh-date,
+[data-theme="light"] .dc-label,
+[data-theme="light"] .dc-unit,
+[data-theme="light"] .dc-progress-label,
+[data-theme="light"] .tracker-label-top,
+[data-theme="light"] .tracker-step-label,
+[data-theme="light"] .mini-label,
+[data-theme="light"] .op-card-meta,
+[data-theme="light"] .op-empty-sub {
+  color: rgba(255, 255, 255, 0.68);
+}
+
+[data-theme="light"] .delivery-countdown {
+  background: linear-gradient(160deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+  border-color: rgba(255,214,146,.24);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+}
+
+[data-theme="light"] .dc-time {
+  color: #ffd488;
+  text-shadow: 0 6px 20px rgba(255, 166, 56, .18);
+}
+
+[data-theme="light"] .dc-divider,
+[data-theme="light"] .dc-progress-track,
+[data-theme="light"] .tracker-line,
+[data-theme="light"] .mini-line {
+  background: rgba(255,255,255,.18);
+}
+
+[data-theme="light"] .tracker-dot,
+[data-theme="light"] .mini-dot {
+  border-color: rgba(255,255,255,.18);
+  background: rgba(255,255,255,.06);
+}
+
 @media (max-width: 900px) {
   .op-filters {
     display: grid;
@@ -601,6 +743,10 @@ const CSS = `
 
   .op-reorder-btn {
     padding: 11px;
+  }
+
+  .op-actions {
+    grid-template-columns: 1fr;
   }
 
   .dc-time {
@@ -651,6 +797,98 @@ function fmtDate(d) {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+function cancellationMessage(order) {
+  const parts = [];
+  if (order?.cancelReason) parts.push(`Reason: ${order.cancelReason}`);
+  if (order?.cancelledBy) parts.push(`By: ${order.cancelledBy}`);
+  if (order?.cancelledAt) parts.push(`At: ${fmtDate(order.cancelledAt)}`);
+  return (
+    parts.join(" | ") ||
+    "This order was cancelled. Contact support if you were charged."
+  );
+}
+
+function printableStatus(status) {
+  return (status || "pending").replace(/_/g, " ").toUpperCase();
+}
+
+function printOrderBill(order, statusOverride = null) {
+  const status = statusOverride || order?.status || "pending";
+  const items = order?.items || [];
+  const subtotal = items.reduce((sum, i) => sum + (i.price || 0) * (i.qty || 0), 0);
+  const tax = subtotal * 0.08;
+  const total = Number(order?.total || 0);
+  const cancelledNote =
+    status === "cancelled" ? cancellationMessage(order) : "";
+
+  const rows = items
+    .map(
+      (i) =>
+        `<tr><td>${i.name}</td><td style="text-align:center;">${i.qty}</td><td style="text-align:right;">$${((i.price || 0) * (i.qty || 0)).toFixed(2)}</td></tr>`,
+    )
+    .join("");
+
+  const html = `
+    <!doctype html>
+    <html>
+      <head>
+        <meta charset="utf-8" />
+        <title>Order Bill - ${order.id || order.orderId}</title>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 24px; color: #111; }
+          .wrap { max-width: 760px; margin: 0 auto; }
+          h1 { margin: 0 0 6px; font-size: 24px; }
+          .muted { color: #666; font-size: 12px; }
+          .row { display: flex; justify-content: space-between; margin: 8px 0; }
+          .status { margin-top: 10px; font-weight: 700; }
+          table { width: 100%; border-collapse: collapse; margin-top: 14px; }
+          th, td { border-bottom: 1px solid #ddd; padding: 9px 6px; font-size: 13px; }
+          th { text-align: left; }
+          .totals { margin-top: 14px; max-width: 280px; margin-left: auto; }
+          .totals .row { font-size: 13px; }
+          .totals .final { font-size: 16px; font-weight: 700; border-top: 1px solid #bbb; padding-top: 8px; margin-top: 8px; }
+          .note { margin-top: 14px; padding: 10px; background: #f8f8f8; border: 1px solid #eee; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="wrap">
+          <h1>Fork.Fleet - Order Bill</h1>
+          <div class="muted">Printed at: ${new Date().toLocaleString()}</div>
+
+          <div class="row"><span>Order ID</span><strong>${order.id || order.orderId}</strong></div>
+          <div class="row"><span>Order Date</span><strong>${fmtDate(order.createdAt)}</strong></div>
+          <div class="row"><span>Customer</span><strong>${order.customerName || "Guest"}</strong></div>
+          <div class="row"><span>Phone</span><strong>${order.customerPhone || "N/A"}</strong></div>
+          <div class="row"><span>Address</span><strong>${order.deliveryAddress || "N/A"}</strong></div>
+          <div class="status">Order Status: ${printableStatus(status)}</div>
+
+          <table>
+            <thead>
+              <tr><th>Item</th><th style="text-align:center;">Qty</th><th style="text-align:right;">Amount</th></tr>
+            </thead>
+            <tbody>${rows || '<tr><td colspan="3">No items</td></tr>'}</tbody>
+          </table>
+
+          <div class="totals">
+            <div class="row"><span>Subtotal</span><span>$${subtotal.toFixed(2)}</span></div>
+            <div class="row"><span>Tax (8%)</span><span>$${tax.toFixed(2)}</span></div>
+            <div class="row final"><span>Total</span><span>$${total.toFixed(2)}</span></div>
+          </div>
+
+          ${cancelledNote ? `<div class="note"><strong>Cancellation Details:</strong><br/>${cancelledNote}</div>` : ""}
+        </div>
+        <script>window.onload = () => window.print();</script>
+      </body>
+    </html>
+  `;
+
+  const w = window.open("", "_blank", "width=900,height=700");
+  if (!w) return;
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
 }
 
 // ── Status label ──────────────────────────────────────────────────────────────
@@ -934,15 +1172,24 @@ function ActiveOrderHero({ order, onReorder }) {
         </div>
       </div>
 
-      {status !== "cancelled" && (
+      <div className={`op-actions${status === "cancelled" ? " single" : ""}`}>
         <button
-          className="op-reorder-btn"
+          className="op-print-btn"
           style={{ marginTop: 20 }}
-          onClick={() => onReorder(order.items)}
+          onClick={() => printOrderBill(order, status)}
         >
-          🔄 Reorder Same Items
+          🧾 Print Bill
         </button>
-      )}
+        {status !== "cancelled" && (
+          <button
+            className="op-reorder-btn"
+            style={{ marginTop: 20 }}
+            onClick={() => onReorder(order.items)}
+          >
+            🔄 Reorder Same Items
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -1005,9 +1252,7 @@ function OrderCard({ order, idx, onReorder }) {
               <span style={{ fontSize: "1.8rem" }}>❌</span>
               <div>
                 <strong>Order Cancelled</strong>
-                <span>
-                  This order was cancelled. Contact support if you were charged.
-                </span>
+                <span>{cancellationMessage(order)}</span>
               </div>
             </div>
           ) : (
@@ -1081,14 +1326,22 @@ function OrderCard({ order, idx, onReorder }) {
               </div>
             )}
 
-          {status !== "cancelled" && (
+          <div className={`op-actions${status === "cancelled" ? " single" : ""}`}>
             <button
-              className="op-reorder-btn"
-              onClick={() => onReorder(order.items)}
+              className="op-print-btn"
+              onClick={() => printOrderBill(order, status)}
             >
-              🔄 Reorder Same Items
+              🧾 Print Bill
             </button>
-          )}
+            {status !== "cancelled" && (
+              <button
+                className="op-reorder-btn"
+                onClick={() => onReorder(order.items)}
+              >
+                🔄 Reorder Same Items
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -1340,8 +1593,25 @@ export default function MyOrdersPage({
                   }}
                 >
                   ❌ This order was cancelled.
+                  <div
+                    style={{
+                      marginTop: 6,
+                      fontWeight: 500,
+                      color: "var(--muted)",
+                      fontSize: ".8rem",
+                    }}
+                  >
+                    {cancellationMessage(trackResult)}
+                  </div>
                 </div>
               )}
+              <button
+                className="op-print-btn"
+                style={{ marginTop: 12 }}
+                onClick={() => printOrderBill(trackResult, trackResult.status)}
+              >
+                🧾 Print Bill
+              </button>
             </div>
           )}
         </div>
@@ -1349,11 +1619,6 @@ export default function MyOrdersPage({
 
       {/* Body */}
       <div className="op-body">
-        {/* Active hero card */}
-        {!loading && heroOrder && (
-          <ActiveOrderHero order={heroOrder} onReorder={handleReorder} />
-        )}
-
         {/* Filter + refresh */}
         {!loading && orders.length > 0 && (
           <div className="op-filters">
@@ -1397,6 +1662,11 @@ export default function MyOrdersPage({
               {refreshing ? "Refreshing…" : "Refresh"}
             </button>
           </div>
+        )}
+
+        {/* Active hero card */}
+        {!loading && heroOrder && (
+          <ActiveOrderHero order={heroOrder} onReorder={handleReorder} />
         )}
 
         {/* Loading */}
